@@ -44,7 +44,7 @@
                    precision="2" gui-text="Font size (px):">10.0</param>
             <separator/>
             <param name="hide_source" type="bool"
-                   gui-text="Hide the source line after dimensioning (single-line mode)">true</param>
+                   gui-text="Make the source line invisible after dimensioning (stroke:none, stays selectable; single-line mode)">true</param>
         </page>
         <page name="update" gui-text="Update">
             <param name="on_existing" type="optiongroup" appearance="combo"
@@ -68,9 +68,10 @@ search "Dimension Line", for one-key updates.
 values (the dialog can't pre-load the stored
 ones, so use this when you want to change style).
 
-The hidden source line stays in the file; show
-it again via the Objects panel (Object &gt; Objects)
-to move or edit it.</label>
+The source line is made invisible (stroke:none),
+not removed, so it stays selectable on the canvas
+(click / Tab / rubber-band) and its nodes stay
+editable. Move or edit it, then re-run to update.</label>
         </page>
         <page name="var" gui-text="Variable">
             <param name="usevar" type="bool"

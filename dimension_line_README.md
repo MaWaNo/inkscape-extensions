@@ -15,8 +15,9 @@ true distance — handy for parametric / templated drawings.
 Each dimension is a **single group** that remembers the object it was
 measured from, so you can **rebuild it after the source moves** by
 re-running the extension on it (give it a keyboard shortcut). In
-single-line mode the source/construction line is **hidden** after
-dimensioning. See [Editing & live update](#editing--live-update).
+single-line mode the source/construction line is made **invisible**
+(`stroke:none`) after dimensioning, but stays selectable so you can move
+it and re-run. See [Editing & live update](#editing--live-update).
 
 Companion to `wall_insulation.py` (same **Architecture** submenu and
 conventions).
@@ -98,7 +99,7 @@ Geometry is entered in **mm** and converted to document user units:
 | No text | draw only the geometry (line + witness + arrows), no label |
 | Text position | `above` / `below` the line, or `center` (sits on the line over a white backing box so it covers the line for readability) |
 | Font size (px) | label size in px |
-| Hide the source line | single-line mode: set the construction line to `display:none` after dimensioning (it stays in the file) |
+| Hide the source line | single-line mode: set the construction line to `stroke:none` after dimensioning — invisible but still selectable/editable |
 
 ### Update tab
 
@@ -144,9 +145,10 @@ to make its objects re-editable. The group stores:
 Inkscape extensions can't react to changes live, so the dependency is a
 **one-shot rebuild**:
 
-1. Move or edit the source line (in single-line mode it's hidden — show
-   it again from the **Objects** panel, *Object → Objects…*).
-2. Select the dimension group (or its hidden source line) and run the
+1. Move or edit the source line. In single-line mode it's invisible
+   (`stroke:none`) but still on the canvas, so you can click / Tab /
+   rubber-band select it and edit its nodes directly.
+2. Select the dimension group (or its invisible source line) and run the
    extension again.
 3. It re-reads the source's **current** geometry and redraws the
    dimension in place — same group, no duplicates.

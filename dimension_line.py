@@ -346,8 +346,12 @@ class DimensionLine(inkex.EffectExtension):
         self._render(g, p1, p2, P)
 
     def _hide(self, el):
+        # Make the source line invisible but keep it on the canvas so it
+        # stays selectable (stroke:none, not display:none) — you can still
+        # click/Tab it and edit its nodes, then re-run to update.
         style = el.style
-        style["display"] = "none"
+        style["stroke"] = "none"
+        style.pop("display", None)       # undo any older display:none
         el.style = style
         el.set(_ns("is-source"), "1")
 
