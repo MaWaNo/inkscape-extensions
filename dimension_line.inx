@@ -50,6 +50,9 @@
                 <option value="Arial">Arial</option>
                 <option value="Helvetica">Helvetica</option>
                 <option value="IBM Plex Sans">IBM Plex Sans</option>
+                <option value="Open Sans">Open Sans</option>
+                <option value="Univers">Univers</option>
+                <option value="Aptos">Aptos</option>
                 <option value="Calibri">Calibri</option>
                 <option value="Times New Roman">Times New Roman</option>
                 <option value="Verdana">Verdana</option>
