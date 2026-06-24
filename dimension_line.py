@@ -358,9 +358,20 @@ class DimensionLine(inkex.EffectExtension):
     # ---- drawing ---------------------------------------------------------
 
     def _render(self, grp, p1, p2, P):
-        """(Re)build the children of a dimension group between p1 and p2."""
+        """(Re)build the children of a dimension group between p1 and p2.
+
+        p1/p2 are in document (composed) coordinates. The group may live
+        inside a transformed container, so we give the group a transform
+        that cancels its parent's composed transform — then drawing in
+        document coordinates renders correctly (no offset/scale/rotation
+        relative to the geometry being measured).
+        """
         for child in list(grp):
             grp.remove(child)
+
+        parent = grp.getparent()
+        if parent is not None:
+            grp.transform = -parent.composed_transform()
 
         dx, dy = p2[0] - p1[0], p2[1] - p1[1]
         length = math.hypot(dx, dy)

@@ -177,6 +177,10 @@ On an existing dimension the **Update tab** chooses:
 - Units: the measured pixel length is converted to the chosen display
   unit via the document's own unit scale, so the number matches what
   Inkscape's ruler reports for the same span.
+- Transformed containers: the dimension is drawn in document
+  coordinates, so the group is given a transform that cancels its
+  parent's transform. This keeps the dimension aligned with the geometry
+  even when it lives inside a translated/scaled/rotated group or layer.
 
 ## Adjusting the look
 
