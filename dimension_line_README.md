@@ -1,10 +1,12 @@
 # Dimension Line — Inkscape 1.3+ extension
 
-Draws an architectural dimension line between two points derived from a
-selection of **exactly two objects**. The result is a dimension line
-offset parallel to the measured span, with **witness lines**,
-**arrowheads** and a **distance label** carrying the real measured
-length in the unit you choose.
+Draws an architectural dimension line between two points. The easiest
+way is to **draw one line** between the points you want to measure and
+run — the dimension goes from that path's first node to its last node.
+Selecting **two objects** also works (endpoints or bbox centers). The
+result is a dimension line offset parallel to the measured span, with
+**witness lines**, **arrowheads** and a **distance label** carrying the
+real measured length in the unit you choose.
 
 The numeric value can be swapped for a **variable placeholder**
 (e.g. `{B}`, `L1`, `b_eff`) while the geometry is still placed using the
@@ -35,14 +37,25 @@ You can confirm the folder from inside Inkscape:
 
 ## Use
 
+**Single line (easiest):**
+
+1. Draw a line/path between the two points you want to measure (a plain
+   line, a combined path, or one inside a group all work).
+2. Select it.
+3. **Extensions → Architecture → Dimension Line**.
+4. Set the options, optionally enable the variable, click **Apply**.
+
+The dimension is drawn from the path's **first node** to its **last
+node**.
+
+**Two objects:**
+
 1. Decide where the two measure points are.
    - For **Path endpoints** mode: draw two short marker strokes and snap
      their *start* nodes to the spots you want to measure.
    - For **Bounding-box centers** mode: any two objects (dots, crosses,
      shapes) work — their bbox centers are used.
-2. Select **both** objects.
-3. **Extensions → Architecture → Dimension Line**.
-4. Set the options, optionally enable the variable, click **Apply**.
+2. Select **both** objects, then run as above.
 
 Three new elements are created in the layer of the first-selected object:
 a path labeled `dimension` (witness lines + main line), one or two
@@ -54,7 +67,7 @@ a path labeled `dimension` (witness lines + main line), one or two
 
 | Param | Meaning |
 |-------|---------|
-| Take points from | `ends` (first node of each path) or `centers` (bbox center of each object) |
+| Take points from | only used when **two** objects are selected: `ends` (first node of each path) or `centers` (bbox center of each object) |
 | Display unit | mm / cm / m / px — the value is converted from document units |
 | Decimal places | rounding of the displayed value (0–6) |
 | Append unit | add the unit string after the number (e.g. `1250 mm`) |
@@ -80,6 +93,10 @@ instance at once.
 
 ## How the points are chosen
 
+- **Single selection** — the first and last on-curve nodes of the path
+  (start → end), in document user units. A combined path or a group
+  containing paths works too: the very first and very last nodes drawn
+  are used.
 - **Path endpoints (`ends`)** — the first on-curve node of each selected
   path, taken in document user units (with the element's own transform
   applied). Needs two **paths**; non-path objects fail in this mode.
@@ -88,8 +105,8 @@ instance at once.
 
 ## Notes / limitations
 
-- You must select **exactly two** objects; anything else aborts with a
-  message.
+- Select **one** line/path or **exactly two** objects; anything else
+  aborts with a message.
 - If the two points coincide (zero distance) nothing is drawn.
 - The label is kept upright automatically: when the span points "left",
   the text is rotated an extra 180° so it never reads upside-down.

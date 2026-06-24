@@ -6,10 +6,11 @@
     <param name="tab" type="notebook">
         <page name="opts" gui-text="Options">
             <param name="from" type="optiongroup" appearance="combo"
-                   gui-text="Take points from:">
+                   gui-text="When TWO objects are selected, take points from:">
                 <option value="ends">Path endpoints (start node of each)</option>
                 <option value="centers">Bounding-box centers</option>
             </param>
+            <label appearance="header">Tip: select a SINGLE line/path to dimension from its start node to its end node. The option above only applies when two objects are selected.</label>
             <param name="unit" type="optiongroup" appearance="combo"
                    gui-text="Display unit:">
                 <option value="mm">mm</option>
@@ -48,15 +49,18 @@ find/replace across the file updates every
 instance at once.</label>
         </page>
         <page name="help" gui-text="Help">
-            <label xml:space="preserve">Select exactly TWO objects, then run.
+            <label xml:space="preserve">Two ways to use it:
 
+ONE line/path selected (easiest):
+Just draw a line between the two points you want
+to measure and run. The dimension goes from the
+path's first node to its last node. The path may
+be a combined path or live inside a group.
+
+TWO objects selected:
 "Path endpoints" uses the first node of each
-selected path as the two points (draw two short
-marker strokes and snap their start nodes where
-you want to measure).
-
-"Bounding-box centers" uses each object's center
-(handy for two dots/crosses).
+selected path. "Bounding-box centers" uses each
+object's center (handy for two dots/crosses).
 
 A dimension line with witness lines, arrowheads
 and a distance label is added to the layer of the

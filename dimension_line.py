@@ -3,15 +3,21 @@
 """
 Dimension line for Inkscape 1.3+
 
-Select exactly TWO objects and run. A dimension line is drawn between two
-points derived from the selection, with witness lines, arrowheads and a
-distance label. The label can be replaced by a variable placeholder
-(e.g. {B}, L1) while still using the real distance for placement.
+Two ways to use it:
 
-Points are taken either from:
-  - ends    : the first node of each selected path (snap two short marker
-              strokes where you want to measure)
-  - centers : the bounding-box center of each object
+  * Select ONE path / line (it may be a combined path or live inside a
+    group). The dimension is drawn from its FIRST node to its LAST node
+    — i.e. just draw a line between the two points you want to measure.
+
+  * Select exactly TWO objects. The two points are then derived per the
+    "Take points from" option:
+      - ends    : the first node of each selected path
+      - centers : the bounding-box center of each object
+
+A dimension line is drawn between the two points, with witness lines,
+arrowheads and a distance label. The label can be replaced by a variable
+placeholder (e.g. {B}, L1) while still using the real distance for
+placement.
 
 Companion to wall_insulation.py (same Architecture submenu / conventions).
 
@@ -23,16 +29,52 @@ import inkex
 from inkex import PathElement, TextElement, Tspan, Path
 
 
+def _superpath(elem):
+    """Composed superpath of an element, or None if it has no path data."""
+    try:
+        return elem.path.transform(elem.composed_transform()).to_superpath()
+    except AttributeError:
+        return None
+
+
 def _first_node(elem):
     """First on-curve point of a path, in document user units, or None."""
-    try:
-        csp = elem.path.transform(elem.composed_transform()).to_superpath()
-    except AttributeError:
+    csp = _superpath(elem)
+    if csp is None:
         return None
     for sub in csp:
         if sub:
             return (sub[0][1][0], sub[0][1][1])
     return None
+
+
+def _end_nodes(elem):
+    """First and last on-curve points of a path (start -> end), or None.
+
+    Works on a plain path, a combined path (multiple subpaths) and a group
+    containing paths — the very first and very last on-curve nodes drawn
+    are returned, in document user units.
+    """
+    sources = [elem]
+    if not hasattr(elem, "path") or _superpath(elem) is None:
+        # e.g. a group: gather any descendant paths
+        try:
+            sources = list(elem.iter())
+        except AttributeError:
+            sources = [elem]
+
+    pts = []
+    for node in sources:
+        csp = _superpath(node)
+        if not csp:
+            continue
+        for sub in csp:
+            for seg in sub:
+                pts.append((seg[1][0], seg[1][1]))
+
+    if len(pts) < 2:
+        return None
+    return pts[0], pts[-1]
 
 
 def _center(elem):
@@ -76,22 +118,34 @@ class DimensionLine(inkex.EffectExtension):
 
     def effect(self):
         sel = list(self.svg.selection)
-        if len(sel) != 2:
-            inkex.errormsg("Select exactly two objects to dimension between.")
+
+        if len(sel) == 1:
+            ends = _end_nodes(sel[0])
+            if ends is None:
+                inkex.errormsg(
+                    "Select a single line/path (with at least two nodes) to "
+                    "dimension from its start to its end, or select two "
+                    "objects.")
+                return
+            p1, p2 = ends
+        elif len(sel) == 2:
+            if self.options.frm == "centers":
+                p1, p2 = _center(sel[0]), _center(sel[1])
+            else:
+                p1, p2 = _first_node(sel[0]), _first_node(sel[1])
+                if p1 is None or p2 is None:
+                    inkex.errormsg(
+                        "Endpoint mode needs two paths. Use 'Bounding-box "
+                        "centers' for non-path objects, or select two paths.")
+                    return
+        else:
+            inkex.errormsg(
+                "Select one line (drawn start -> end) or exactly two objects "
+                "to dimension between.")
             return
 
-        if self.options.frm == "centers":
-            p1, p2 = _center(sel[0]), _center(sel[1])
-        else:
-            p1, p2 = _first_node(sel[0]), _first_node(sel[1])
-            if p1 is None or p2 is None:
-                inkex.errormsg(
-                    "Endpoint mode needs two paths. Use 'Bounding-box "
-                    "centers' for non-path objects, or select two paths.")
-                return
-
         if p1 is None or p2 is None:
-            inkex.errormsg("Could not read a point from one of the objects.")
+            inkex.errormsg("Could not read a point from the selection.")
             return
 
         dx, dy = p2[0] - p1[0], p2[1] - p1[1]
