@@ -57,9 +57,20 @@ node**.
      shapes) work — their bbox centers are used.
 2. Select **both** objects, then run as above.
 
-Three new elements are created in the layer of the first-selected object:
-a path labeled `dimension` (witness lines + main line), one or two
-`dimension-arrow` paths, and a `dimension-text` label.
+Up to three new elements are created in the layer of the first-selected
+object: a path labeled `dimension` (witness lines + main line), one or
+two `dimension-arrow` paths, and a `dimension-text` group (omitted in
+*No text* mode).
+
+> **Settings are remembered.** Inkscape stores the last-used values of
+> every parameter per extension, so the dialog reopens with whatever you
+> last entered (across sessions too).
+
+## Units
+
+Geometry is entered in **mm** and converted to document user units:
+**line offset, witness extension, arrow size, stroke width**. Only the
+**font size** is in **px**.
 
 ## Parameters
 
@@ -68,15 +79,17 @@ a path labeled `dimension` (witness lines + main line), one or two
 | Param | Meaning |
 |-------|---------|
 | Take points from | only used when **two** objects are selected: `ends` (first node of each path) or `centers` (bbox center of each object) |
-| Display unit | mm / cm / m / px — the value is converted from document units |
+| Display unit | mm / cm / m / px — the value shown in the label, converted from document units |
 | Decimal places | rounding of the displayed value (0–6) |
 | Append unit | add the unit string after the number (e.g. `1250 mm`) |
-| Line offset | distance the dimension line sits parallel to the span; `0` = drawn directly on the points; sign sets which side |
-| Witness extension | how far the witness lines run past the dimension line |
-| Arrow size | filled-triangle arrowhead size; `0` = no arrows |
-| Font size | label size in px |
-| Stroke width | line weight of line + witness lines |
+| Line offset (mm) | distance the dimension line sits parallel to the span; `0` = drawn directly on the points; sign sets which side |
+| Witness extension (mm) | how far the witness lines run past the dimension line |
+| Arrow size (mm) | filled-triangle arrowhead size; `0` = no arrows |
+| Stroke width (mm) | line weight of line + witness lines |
 | Stroke color | color of line, arrows and text |
+| No text | draw only the geometry (line + witness + arrows), no label |
+| Text position | `above` / `below` the line, or `center` (sits on the line over a white backing box so it covers the line for readability) |
+| Font size (px) | label size in px |
 
 ### Variable tab
 
@@ -122,4 +135,5 @@ instance at once.
   **Line offset** and **Witness extension**.
 - **Arrowhead proportions** live in `_arrow()` in `dimension_line.py`
   (the `0.35` factor sets the half-width of the triangle base).
-- **Text standoff** from the line is the `fs * 0.4` term in `_label()`.
+- **Text standoff** (above/below) is the `fs * 0.6` term in `_label()`;
+  the centered backing-box size is the `w`/`pad` terms there.

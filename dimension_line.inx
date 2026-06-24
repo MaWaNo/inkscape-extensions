@@ -23,16 +23,25 @@
             <param name="suffix" type="bool"
                    gui-text="Append unit after the value">false</param>
             <param name="offset" type="float" min="-1000.0" max="1000.0"
-                   precision="2" gui-text="Line offset (px, 0 = on the points):">20.0</param>
+                   precision="2" gui-text="Line offset (mm, 0 = on the points):">5.0</param>
             <param name="ext" type="float" min="0.0" max="200.0"
-                   precision="2" gui-text="Witness extension (px):">5.0</param>
+                   precision="2" gui-text="Witness extension (mm):">1.5</param>
             <param name="arrow" type="float" min="0.0" max="50.0"
-                   precision="2" gui-text="Arrow size (px, 0 = none):">8.0</param>
+                   precision="2" gui-text="Arrow size (mm, 0 = none):">2.5</param>
+            <param name="stroke_width" type="float" min="0.01" max="20.0"
+                   precision="2" gui-text="Stroke width (mm):">0.25</param>
+            <param name="stroke_color" type="color" gui-text="Stroke color:">255</param>
+            <separator/>
+            <param name="notext" type="bool"
+                   gui-text="No text (draw geometry only)">false</param>
+            <param name="textpos" type="optiongroup" appearance="combo"
+                   gui-text="Text position:">
+                <option value="above">Above the line</option>
+                <option value="below">Below the line</option>
+                <option value="center">Centered on the line (covers it)</option>
+            </param>
             <param name="fontsize" type="float" min="1.0" max="100.0"
                    precision="2" gui-text="Font size (px):">10.0</param>
-            <param name="stroke_width" type="float" min="0.05" max="20.0"
-                   precision="2" gui-text="Stroke width (px):">0.5</param>
-            <param name="stroke_color" type="color" gui-text="Stroke color:">255</param>
         </page>
         <page name="var" gui-text="Variable">
             <param name="usevar" type="bool"

@@ -26,7 +26,7 @@ Author: generated for Markus
 
 import math
 import inkex
-from inkex import PathElement, TextElement, Tspan, Path
+from inkex import PathElement, TextElement, Tspan, Path, Group, Rectangle
 
 
 def _superpath(elem):
@@ -99,8 +99,14 @@ class DimensionLine(inkex.EffectExtension):
         pars.add_argument("--fontsize", type=float, default=10.0)
         pars.add_argument("--stroke_width", type=float, default=0.5)
         pars.add_argument("--stroke_color", type=str, default="#000000")
+        pars.add_argument("--notext", type=inkex.Boolean, default=False)
+        pars.add_argument("--textpos", default="above")
         pars.add_argument("--usevar", type=inkex.Boolean, default=False)
         pars.add_argument("--varname", default="{B}")
+
+    def _mm(self, value):
+        """Convert a mm input to document user units."""
+        return self.svg.unittouu("{}mm".format(value))
 
     def _color_css(self):
         """Accept either '#rrggbb' or an Inkscape RGBA integer string."""
@@ -156,9 +162,13 @@ class DimensionLine(inkex.EffectExtension):
 
         ux, uy = dx / length, dy / length          # along
         nx, ny = -uy, ux                            # perpendicular (normal)
-        off = self.options.offset
-        ext = self.options.ext
-        arrow = self.options.arrow
+
+        # geometry inputs are given in mm -> convert to document user units
+        # (font size stays in px, see _label)
+        off = self._mm(self.options.offset)
+        ext = self._mm(self.options.ext)
+        arrow = self._mm(self.options.arrow)
+        sw = self._mm(self.options.stroke_width)
 
         # dimension line endpoints (offset parallel to the measured span)
         a1 = (p1[0] + nx * off, p1[1] + ny * off)
@@ -183,7 +193,7 @@ class DimensionLine(inkex.EffectExtension):
         line_node.style = {
             "fill": "none",
             "stroke": self._color_css(),
-            "stroke-width": str(self.options.stroke_width),
+            "stroke-width": "{:.4f}".format(sw),
             "stroke-linejoin": "round",
             "stroke-linecap": "round",
         }
@@ -202,7 +212,8 @@ class DimensionLine(inkex.EffectExtension):
                 parent.add(head)
 
         # label
-        parent.add(self._label(a1, a2, length, ux, uy))
+        if not self.options.notext:
+            parent.add(self._label(a1, a2, length, ux, uy))
 
     def _arrow(self, tip, direction, size):
         ux, uy = direction
@@ -228,26 +239,53 @@ class DimensionLine(inkex.EffectExtension):
         angle = math.degrees(math.atan2(uy, ux))
         if angle > 90 or angle < -90:        # keep text upright
             angle += 180
-        fs = self.options.fontsize
-        nx, ny = -uy, ux                     # lift text just off the line
-        tx, ty = mx + nx * (fs * 0.4), my + ny * (fs * 0.4)
+        fs = self.options.fontsize           # font size stays in px
+        rad = math.radians(angle)
+        # "up" direction for the upright glyphs (perpendicular to the line)
+        upx, upy = math.sin(rad), -math.cos(rad)
+
+        pos = self.options.textpos
+        if pos == "above":
+            cx, cy = mx + upx * (fs * 0.6), my + upy * (fs * 0.6)
+        elif pos == "below":
+            cx, cy = mx - upx * (fs * 0.6), my - upy * (fs * 0.6)
+        else:                                # "center" -> sits on the line
+            cx, cy = mx, my
+
+        txt = self._value_text(length_px)
+
+        grp = Group()
+        grp.set("transform",
+                "rotate({:.3f} {:.3f} {:.3f})".format(angle, cx, cy))
+        grp.label = "dimension-text"
+
+        # centered text covers the line: white backing box for readability
+        if pos == "center":
+            w = max(1, len(txt)) * fs * 0.6
+            pad = fs * 0.25
+            rect = Rectangle()
+            rect.set("x", "{:.3f}".format(cx - w / 2.0 - pad))
+            rect.set("y", "{:.3f}".format(cy - fs * 0.6 - pad))
+            rect.set("width", "{:.3f}".format(w + 2 * pad))
+            rect.set("height", "{:.3f}".format(fs * 1.2 + 2 * pad))
+            rect.style = {"fill": "#ffffff", "stroke": "none"}
+            grp.add(rect)
 
         text = TextElement()
-        text.set("x", "{:.3f}".format(tx))
-        text.set("y", "{:.3f}".format(ty))
-        text.set("transform",
-                 "rotate({:.3f} {:.3f} {:.3f})".format(angle, tx, ty))
+        text.set("x", "{:.3f}".format(cx))
+        text.set("y", "{:.3f}".format(cy))
         text.style = {
             "font-size": "{:.2f}px".format(fs),
             "font-family": "sans-serif",
             "text-anchor": "middle",
+            "dominant-baseline": "central",
             "fill": self._color_css(),
         }
         ts = Tspan()
-        ts.text = self._value_text(length_px)
+        ts.text = txt
         text.append(ts)
-        text.label = "dimension-text"
-        return text
+        grp.add(text)
+        return grp
 
     def _fmt(self, cmds):
         parts = []
