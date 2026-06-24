@@ -118,6 +118,8 @@ class DimensionLine(inkex.EffectExtension):
         pars.add_argument("--ext", type=float, default=1.5)
         pars.add_argument("--arrow", type=float, default=2.5)
         pars.add_argument("--fontsize", type=float, default=10.0)
+        pars.add_argument("--fontfamily", default="sans-serif")
+        pars.add_argument("--fontcustom", default="")
         pars.add_argument("--stroke_width", type=float, default=0.25)
         pars.add_argument("--stroke_color", type=str, default="#000000")
         pars.add_argument("--notext", type=inkex.Boolean, default=False)
@@ -156,6 +158,8 @@ class DimensionLine(inkex.EffectExtension):
             "arrow": self.options.arrow,           # mm
             "sw": self.options.stroke_width,       # mm
             "fontsize": self.options.fontsize,     # px
+            "font": (self.options.fontcustom.strip()
+                     or self.options.fontfamily),
             "color": self._color_css(),
             "unit": self.options.unit,
             "precision": self.options.precision,
@@ -174,6 +178,7 @@ class DimensionLine(inkex.EffectExtension):
         s("arrow", P["arrow"])
         s("stroke-width", P["sw"])
         s("fontsize", P["fontsize"])
+        s("font", P["font"])
         s("color", P["color"])
         s("unit", P["unit"])
         s("precision", P["precision"])
@@ -193,6 +198,7 @@ class DimensionLine(inkex.EffectExtension):
             "arrow": float(a("arrow", "0")),
             "sw": float(a("stroke-width", "0.25")),
             "fontsize": float(a("fontsize", "10")),
+            "font": a("font", "sans-serif"),
             "color": a("color", "#000000"),
             "unit": a("unit", "mm"),
             "precision": int(a("precision", "0")),
@@ -482,7 +488,7 @@ class DimensionLine(inkex.EffectExtension):
         text.set("y", "{:.3f}".format(cy))
         text.style = {
             "font-size": "{:.2f}px".format(fs),
-            "font-family": "sans-serif",
+            "font-family": P["font"],
             "text-anchor": "middle",
             "dominant-baseline": "central",
             "fill": P["color"],

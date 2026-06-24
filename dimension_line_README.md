@@ -99,6 +99,8 @@ Geometry is entered in **mm** and converted to document user units:
 | No text | draw only the geometry (line + witness + arrows), no label |
 | Text position | `above` / `below` the line, or `center` (sits on the line over a white backing box so it covers the line for readability) |
 | Font size (px) | label size in px |
+| Font | label font family — pick from the list (sans-serif, serif, IBM Plex Sans, …) |
+| Custom font | type any installed font family; overrides the list when not empty |
 | Hide the source line | single-line mode: set the construction line to `stroke:none` after dimensioning — invisible but still selectable/editable |
 
 ### Update tab

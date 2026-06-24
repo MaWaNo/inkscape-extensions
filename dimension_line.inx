@@ -42,6 +42,20 @@
             </param>
             <param name="fontsize" type="float" min="1.0" max="100.0"
                    precision="2" gui-text="Font size (px):">10.0</param>
+            <param name="fontfamily" type="optiongroup" appearance="combo"
+                   gui-text="Font:">
+                <option value="sans-serif">sans-serif (default)</option>
+                <option value="serif">serif</option>
+                <option value="monospace">monospace</option>
+                <option value="Arial">Arial</option>
+                <option value="Helvetica">Helvetica</option>
+                <option value="IBM Plex Sans">IBM Plex Sans</option>
+                <option value="Calibri">Calibri</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Verdana">Verdana</option>
+            </param>
+            <param name="fontcustom" type="string"
+                   gui-text="Custom font (overrides the list if not empty):"></param>
             <separator/>
             <param name="hide_source" type="bool"
                    gui-text="Make the source line invisible after dimensioning (stroke:none, stays selectable; single-line mode)">true</param>
