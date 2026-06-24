@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+    <name>Dimension Line</name>
+    <id>org.markus.architecture.dimension_line</id>
+
+    <param name="tab" type="notebook">
+        <page name="opts" gui-text="Options">
+            <param name="from" type="optiongroup" appearance="combo"
+                   gui-text="Take points from:">
+                <option value="ends">Path endpoints (start node of each)</option>
+                <option value="centers">Bounding-box centers</option>
+            </param>
+            <param name="unit" type="optiongroup" appearance="combo"
+                   gui-text="Display unit:">
+                <option value="mm">mm</option>
+                <option value="cm">cm</option>
+                <option value="m">m</option>
+                <option value="px">px</option>
+            </param>
+            <param name="precision" type="int" min="0" max="6"
+                   gui-text="Decimal places:">0</param>
+            <param name="suffix" type="bool"
+                   gui-text="Append unit after the value">false</param>
+            <param name="offset" type="float" min="-1000.0" max="1000.0"
+                   precision="2" gui-text="Line offset (px, 0 = on the points):">20.0</param>
+            <param name="ext" type="float" min="0.0" max="200.0"
+                   precision="2" gui-text="Witness extension (px):">5.0</param>
+            <param name="arrow" type="float" min="0.0" max="50.0"
+                   precision="2" gui-text="Arrow size (px, 0 = none):">8.0</param>
+            <param name="fontsize" type="float" min="1.0" max="100.0"
+                   precision="2" gui-text="Font size (px):">10.0</param>
+            <param name="stroke_width" type="float" min="0.05" max="20.0"
+                   precision="2" gui-text="Stroke width (px):">0.5</param>
+            <param name="stroke_color" type="color" gui-text="Stroke color:">255</param>
+        </page>
+        <page name="var" gui-text="Variable">
+            <param name="usevar" type="bool"
+                   gui-text="Replace value with a variable">false</param>
+            <param name="varname" type="string"
+                   gui-text="Variable text:">{B}</param>
+            <label xml:space="preserve">When enabled, the measured number is replaced
+by the text above (e.g. {B}, L1, b_eff). The
+geometry is still placed using the real distance,
+so you can toggle this without moving anything.
+
+The label is plain SVG text, so a later
+find/replace across the file updates every
+instance at once.</label>
+        </page>
+        <page name="help" gui-text="Help">
+            <label xml:space="preserve">Select exactly TWO objects, then run.
+
+"Path endpoints" uses the first node of each
+selected path as the two points (draw two short
+marker strokes and snap their start nodes where
+you want to measure).
+
+"Bounding-box centers" uses each object's center
+(handy for two dots/crosses).
+
+A dimension line with witness lines, arrowheads
+and a distance label is added to the layer of the
+first selection. Offset places the line parallel,
+clear of the geometry; set offset = 0 to draw it
+directly between the two points.</label>
+        </page>
+    </param>
+
+    <effect>
+        <object-type>all</object-type>
+        <effects-menu>
+            <submenu name="Architecture"/>
+        </effects-menu>
+    </effect>
+
+    <script>
+        <command location="inx" interpreter="python">dimension_line.py</command>
+    </script>
+</inkscape-extension>

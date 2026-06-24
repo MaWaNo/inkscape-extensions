@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+    <name>Wall Cavity Insulation</name>
+    <id>org.markus.architecture.wall_insulation</id>
+
+    <param name="tab" type="notebook">
+        <page name="opts" gui-text="Options">
+            <param name="style" type="optiongroup" appearance="combo"
+                   gui-text="Insulation style:">
+                <option value="batt">Batt / soft (looped)</option>
+                <option value="rigid">Rigid (zig-zag)</option>
+            </param>
+            <param name="spacing" type="float" min="0.0" max="200.0"
+                   precision="2" gui-text="Pitch along wall (px, 0 = auto):">0.0</param>
+            <param name="inset" type="float" min="0.0" max="100.0"
+                   precision="2" gui-text="Inset from each face (px):">0.0</param>
+            <param name="boundaries" type="bool"
+                   gui-text="Draw the two face lines">true</param>
+            <param name="stroke_width" type="float" min="0.05" max="20.0"
+                   precision="2" gui-text="Stroke width (px):">0.5</param>
+            <param name="stroke_color" type="color" gui-text="Stroke color:">255</param>
+        </page>
+        <page name="help" gui-text="Help">
+            <label xml:space="preserve">Select exactly TWO paths that form the two
+faces of the wall cavity (inner and outer line),
+then run this extension.
+
+The insulation symbol is drawn filling the cavity
+and follows curved walls. Result is a single new
+path placed in the layer of the first selection.
+
+Tip: "Pitch" is the spacing of the loops/zigs
+measured along the wall. Smaller = denser.
+"Inset" leaves a small gap at each face.</label>
+        </page>
+    </param>
+
+    <effect>
+        <object-type>path</object-type>
+        <effects-menu>
+            <submenu name="Architecture"/>
+        </effects-menu>
+    </effect>
+
+    <script>
+        <command location="inx" interpreter="python">wall_insulation.py</command>
+    </script>
+</inkscape-extension>
