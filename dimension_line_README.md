@@ -12,6 +12,12 @@ The numeric value can be swapped for a **variable placeholder**
 (e.g. `{B}`, `L1`, `b_eff`) while the geometry is still placed using the
 true distance — handy for parametric / templated drawings.
 
+Each dimension is a **single group** that remembers the object it was
+measured from, so you can **rebuild it after the source moves** by
+re-running the extension on it (give it a keyboard shortcut). In
+single-line mode the source/construction line is **hidden** after
+dimensioning. See [Editing & live update](#editing--live-update).
+
 Companion to `wall_insulation.py` (same **Architecture** submenu and
 conventions).
 
@@ -57,10 +63,12 @@ node**.
      shapes) work — their bbox centers are used.
 2. Select **both** objects, then run as above.
 
-Up to three new elements are created in the layer of the first-selected
-object: a path labeled `dimension` (witness lines + main line), one or
-two `dimension-arrow` paths, and a `dimension-text` group (omitted in
-*No text* mode).
+One new **group** (labeled `dimension`) is created in the layer of the
+first-selected object, containing a `dimension-line` path (witness lines
++ main line), one or two `dimension-arrow` paths, and a
+`dimension-text` group (omitted in *No text* mode). The group also
+carries `dimline:*` metadata — see
+[Editing & live update](#editing--live-update).
 
 > **Settings are remembered.** Inkscape stores the last-used values of
 > every parameter per extension, so the dialog reopens with whatever you
@@ -90,6 +98,13 @@ Geometry is entered in **mm** and converted to document user units:
 | No text | draw only the geometry (line + witness + arrows), no label |
 | Text position | `above` / `below` the line, or `center` (sits on the line over a white backing box so it covers the line for readability) |
 | Font size (px) | label size in px |
+| Hide the source line | single-line mode: set the construction line to `display:none` after dimensioning (it stays in the file) |
+
+### Update tab
+
+| Param | Meaning |
+|-------|---------|
+| When an existing dimension is selected | `refresh` = rebuild from the source keeping the group's stored style; `restyle` = rebuild and re-apply the current Options-tab settings |
 
 ### Variable tab
 
@@ -115,6 +130,38 @@ instance at once.
   applied). Needs two **paths**; non-path objects fail in this mode.
 - **Bounding-box centers (`centers`)** — `(center_x, center_y)` of each
   object's bounding box. Works for any object type.
+
+## Editing & live update
+
+Every dimension is created as **one group** carrying custom
+`dimline:*` attributes (its own namespace), the same idea TexText uses
+to make its objects re-editable. The group stores:
+
+- the **id(s) of the source object(s)** and the mode (`single` /
+  `ends` / `centers`);
+- **all the style parameters** (offset, arrow, font size, colour, …).
+
+Inkscape extensions can't react to changes live, so the dependency is a
+**one-shot rebuild**:
+
+1. Move or edit the source line (in single-line mode it's hidden — show
+   it again from the **Objects** panel, *Object → Objects…*).
+2. Select the dimension group (or its hidden source line) and run the
+   extension again.
+3. It re-reads the source's **current** geometry and redraws the
+   dimension in place — same group, no duplicates.
+
+Assign a **keyboard shortcut** under *Edit → Preferences → Interface →
+Keyboard*, search "Dimension Line", so a single keypress refreshes the
+selected dimension.
+
+On an existing dimension the **Update tab** chooses:
+
+- **Refresh** (default) — keep the look stored in the group, just
+  re-fit the geometry to the (moved) source.
+- **Re-apply** — also restyle it with the current Options-tab values.
+  Inkscape can't pre-load the stored values into the dialog, so use this
+  when you deliberately want to change the style.
 
 ## Notes / limitations
 

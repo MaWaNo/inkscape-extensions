@@ -42,6 +42,35 @@
             </param>
             <param name="fontsize" type="float" min="1.0" max="100.0"
                    precision="2" gui-text="Font size (px):">10.0</param>
+            <separator/>
+            <param name="hide_source" type="bool"
+                   gui-text="Hide the source line after dimensioning (single-line mode)">true</param>
+        </page>
+        <page name="update" gui-text="Update">
+            <param name="on_existing" type="optiongroup" appearance="combo"
+                   gui-text="When an existing dimension is selected:">
+                <option value="refresh">Refresh from source (keep its stored style)</option>
+                <option value="restyle">Re-apply the settings on the Options tab</option>
+            </param>
+            <label xml:space="preserve">Each dimension is one group tagged with the
+id of its source object and all its settings.
+
+Select a dimension (or its hidden source line)
+and run the extension again to rebuild it from
+the source's CURRENT position — so after you
+move or edit the line, one run updates the
+dimension. Assign a keyboard shortcut under
+Edit &gt; Preferences &gt; Interface &gt; Keyboard,
+search "Dimension Line", for one-key updates.
+
+"Refresh" keeps the look stored in the group.
+"Re-apply" restyles it with the Options tab
+values (the dialog can't pre-load the stored
+ones, so use this when you want to change style).
+
+The hidden source line stays in the file; show
+it again via the Objects panel (Object &gt; Objects)
+to move or edit it.</label>
         </page>
         <page name="var" gui-text="Variable">
             <param name="usevar" type="bool"

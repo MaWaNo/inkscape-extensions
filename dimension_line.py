@@ -3,21 +3,31 @@
 """
 Dimension line for Inkscape 1.3+
 
-Two ways to use it:
+Two ways to create one:
 
   * Select ONE path / line (it may be a combined path or live inside a
     group). The dimension is drawn from its FIRST node to its LAST node
     — i.e. just draw a line between the two points you want to measure.
+    The source line is then hidden; the dimension keeps a reference to
+    it so it can be rebuilt.
 
   * Select exactly TWO objects. The two points are then derived per the
     "Take points from" option:
       - ends    : the first node of each selected path
       - centers : the bounding-box center of each object
 
-A dimension line is drawn between the two points, with witness lines,
-arrowheads and a distance label. The label can be replaced by a variable
-placeholder (e.g. {B}, L1) while still using the real distance for
-placement.
+The whole dimension (line + witness lines + arrowheads + label) is put
+into ONE group tagged with custom `dimline:*` attributes that store the
+source object id(s) and all the parameters — the same idea TexText uses
+to make its objects re-editable.
+
+Re-running the extension on an existing dimension group (assign it a
+keyboard shortcut) re-reads the *current* geometry of the source and
+redraws it, so after you move or edit the source line a single keypress
+updates the dimension.
+
+The distance label can be replaced by a variable placeholder (e.g. {B},
+L1) while still using the real distance for placement.
 
 Companion to wall_insulation.py (same Architecture submenu / conventions).
 
@@ -26,7 +36,18 @@ Author: generated for Markus
 
 import math
 import inkex
+from lxml import etree
 from inkex import PathElement, TextElement, Tspan, Path, Group, Rectangle
+
+# Custom namespace for the metadata we tag onto a dimension group, so the
+# extension can recognise and rebuild its own objects (cf. TexText).
+DIM_NS = "http://www.bemessung.at/namespaces/dimension_line"
+inkex.NSS["dimline"] = DIM_NS
+etree.register_namespace("dimline", DIM_NS)
+
+
+def _ns(name):
+    return inkex.addNS(name, "dimline")
 
 
 def _superpath(elem):
@@ -93,16 +114,20 @@ class DimensionLine(inkex.EffectExtension):
         pars.add_argument("--unit", default="mm")
         pars.add_argument("--precision", type=int, default=0)
         pars.add_argument("--suffix", type=inkex.Boolean, default=False)
-        pars.add_argument("--offset", type=float, default=20.0)
-        pars.add_argument("--ext", type=float, default=5.0)
-        pars.add_argument("--arrow", type=float, default=8.0)
+        pars.add_argument("--offset", type=float, default=5.0)
+        pars.add_argument("--ext", type=float, default=1.5)
+        pars.add_argument("--arrow", type=float, default=2.5)
         pars.add_argument("--fontsize", type=float, default=10.0)
-        pars.add_argument("--stroke_width", type=float, default=0.5)
+        pars.add_argument("--stroke_width", type=float, default=0.25)
         pars.add_argument("--stroke_color", type=str, default="#000000")
         pars.add_argument("--notext", type=inkex.Boolean, default=False)
         pars.add_argument("--textpos", default="above")
         pars.add_argument("--usevar", type=inkex.Boolean, default=False)
         pars.add_argument("--varname", default="{B}")
+        pars.add_argument("--hide_source", type=inkex.Boolean, default=True)
+        pars.add_argument("--on_existing", default="refresh")
+
+    # ---- units / colour helpers -----------------------------------------
 
     def _mm(self, value):
         """Convert a mm input to document user units."""
@@ -122,9 +147,112 @@ class DimensionLine(inkex.EffectExtension):
         except (ValueError, TypeError):
             return "#000000"
 
+    # ---- parameter bundles ----------------------------------------------
+
+    def _params_from_options(self):
+        return {
+            "off": self.options.offset,            # mm
+            "ext": self.options.ext,               # mm
+            "arrow": self.options.arrow,           # mm
+            "sw": self.options.stroke_width,       # mm
+            "fontsize": self.options.fontsize,     # px
+            "color": self._color_css(),
+            "unit": self.options.unit,
+            "precision": self.options.precision,
+            "suffix": self.options.suffix,
+            "notext": self.options.notext,
+            "textpos": self.options.textpos,
+            "usevar": self.options.usevar,
+            "varname": self.options.varname,
+        }
+
+    def _store_params(self, g, P):
+        def s(name, val):
+            g.set(_ns(name), str(val))
+        s("offset", P["off"])
+        s("ext", P["ext"])
+        s("arrow", P["arrow"])
+        s("stroke-width", P["sw"])
+        s("fontsize", P["fontsize"])
+        s("color", P["color"])
+        s("unit", P["unit"])
+        s("precision", P["precision"])
+        s("suffix", "true" if P["suffix"] else "false")
+        s("notext", "true" if P["notext"] else "false")
+        s("textpos", P["textpos"])
+        s("usevar", "true" if P["usevar"] else "false")
+        s("varname", P["varname"])
+
+    def _params_from_group(self, g):
+        def a(name, default=""):
+            v = g.get(_ns(name))
+            return default if v is None else v
+        return {
+            "off": float(a("offset", "0")),
+            "ext": float(a("ext", "0")),
+            "arrow": float(a("arrow", "0")),
+            "sw": float(a("stroke-width", "0.25")),
+            "fontsize": float(a("fontsize", "10")),
+            "color": a("color", "#000000"),
+            "unit": a("unit", "mm"),
+            "precision": int(a("precision", "0")),
+            "suffix": a("suffix", "false") == "true",
+            "notext": a("notext", "false") == "true",
+            "textpos": a("textpos", "above"),
+            "usevar": a("usevar", "false") == "true",
+            "varname": a("varname", "{B}"),
+        }
+
+    # ---- finding our own groups -----------------------------------------
+
+    def _as_dim_group(self, el):
+        """Return the dimension group for el (el itself or an ancestor)."""
+        node = el
+        while node is not None:
+            try:
+                if node.get(_ns("role")) == "dimension":
+                    return node
+            except AttributeError:
+                return None
+            node = node.getparent()
+        return None
+
+    def _group_for_source(self, el):
+        """If el is a tagged source line, return the group that uses it."""
+        if el.get(_ns("is-source")) is None:
+            return None
+        sid = el.get("id")
+        if not sid:
+            return None
+        for g in self.svg.iter():
+            if g.get(_ns("role")) == "dimension":
+                if sid in (g.get(_ns("source")) or "").split():
+                    return g
+        return None
+
+    def _find_dim_group(self, sel):
+        for el in sel:
+            g = self._as_dim_group(el)
+            if g is not None:
+                return g
+        for el in sel:
+            g = self._group_for_source(el)
+            if g is not None:
+                return g
+        return None
+
+    # ---- main ------------------------------------------------------------
+
     def effect(self):
         sel = list(self.svg.selection)
 
+        # Editing an existing dimension? -> update it from its source.
+        dimg = self._find_dim_group(sel)
+        if dimg is not None:
+            self._update(dimg)
+            return
+
+        # Otherwise create a new dimension from the selection.
         if len(sel) == 1:
             ends = _end_nodes(sel[0])
             if ends is None:
@@ -134,16 +262,21 @@ class DimensionLine(inkex.EffectExtension):
                     "objects.")
                 return
             p1, p2 = ends
+            mode = "single"
+            srcs = [sel[0]]
         elif len(sel) == 2:
             if self.options.frm == "centers":
                 p1, p2 = _center(sel[0]), _center(sel[1])
+                mode = "centers"
             else:
                 p1, p2 = _first_node(sel[0]), _first_node(sel[1])
+                mode = "ends"
                 if p1 is None or p2 is None:
                     inkex.errormsg(
                         "Endpoint mode needs two paths. Use 'Bounding-box "
                         "centers' for non-path objects, or select two paths.")
                     return
+            srcs = [sel[0], sel[1]]
         else:
             inkex.errormsg(
                 "Select one line (drawn start -> end) or exactly two objects "
@@ -153,30 +286,94 @@ class DimensionLine(inkex.EffectExtension):
         if p1 is None or p2 is None:
             inkex.errormsg("Could not read a point from the selection.")
             return
+        if math.hypot(p2[0] - p1[0], p2[1] - p1[1]) < 1e-9:
+            inkex.errormsg("The two points coincide; nothing to dimension.")
+            return
+
+        src_ids = [e.get_id() for e in srcs]
+        parent = srcs[0].getparent()
+
+        grp = Group()
+        grp.label = "dimension"
+        grp.set(_ns("role"), "dimension")
+        grp.set(_ns("version"), "1")
+        grp.set(_ns("mode"), mode)
+        grp.set(_ns("source"), " ".join(src_ids))
+        P = self._params_from_options()
+        self._store_params(grp, P)
+        parent.add(grp)
+
+        self._render(grp, p1, p2, P)
+
+        # Hide the construction line (single-line mode only).
+        if mode == "single" and self.options.hide_source:
+            self._hide(srcs[0])
+
+    def _update(self, g):
+        mode = g.get(_ns("mode")) or "single"
+        src_ids = (g.get(_ns("source")) or "").split()
+        els = [self.svg.getElementById(i) for i in src_ids]
+        if not els or any(e is None for e in els):
+            inkex.errormsg(
+                "Cannot update this dimension: its source object(s) are no "
+                "longer in the document.")
+            return
+
+        if mode == "single":
+            ends = _end_nodes(els[0])
+            if ends is None:
+                inkex.errormsg("The source line has too few nodes to update.")
+                return
+            p1, p2 = ends
+        elif mode == "centers":
+            p1, p2 = _center(els[0]), _center(els[1])
+        else:
+            p1, p2 = _first_node(els[0]), _first_node(els[1])
+
+        if p1 is None or p2 is None:
+            inkex.errormsg("Could not read points from the source object(s).")
+            return
+        if math.hypot(p2[0] - p1[0], p2[1] - p1[1]) < 1e-9:
+            inkex.errormsg("The source points coincide; nothing to dimension.")
+            return
+
+        if self.options.on_existing == "restyle":
+            P = self._params_from_options()
+            self._store_params(g, P)
+        else:
+            P = self._params_from_group(g)
+
+        self._render(g, p1, p2, P)
+
+    def _hide(self, el):
+        style = el.style
+        style["display"] = "none"
+        el.style = style
+        el.set(_ns("is-source"), "1")
+
+    # ---- drawing ---------------------------------------------------------
+
+    def _render(self, grp, p1, p2, P):
+        """(Re)build the children of a dimension group between p1 and p2."""
+        for child in list(grp):
+            grp.remove(child)
 
         dx, dy = p2[0] - p1[0], p2[1] - p1[1]
         length = math.hypot(dx, dy)
         if length < 1e-9:
-            inkex.errormsg("The two points coincide; nothing to dimension.")
             return
-
         ux, uy = dx / length, dy / length          # along
         nx, ny = -uy, ux                            # perpendicular (normal)
 
-        # geometry inputs are given in mm -> convert to document user units
-        # (font size stays in px, see _label)
-        off = self._mm(self.options.offset)
-        ext = self._mm(self.options.ext)
-        arrow = self._mm(self.options.arrow)
-        sw = self._mm(self.options.stroke_width)
+        off = self._mm(P["off"])
+        ext = self._mm(P["ext"])
+        arrow = self._mm(P["arrow"])
+        sw = self._mm(P["sw"])
 
-        # dimension line endpoints (offset parallel to the measured span)
         a1 = (p1[0] + nx * off, p1[1] + ny * off)
         a2 = (p2[0] + nx * off, p2[1] + ny * off)
 
         cmds = []
-
-        # witness lines from each point out just past the dimension line
         if abs(off) > 1e-9:
             w1 = (p1[0] + nx * (off + math.copysign(ext, off)),
                   p1[1] + ny * (off + math.copysign(ext, off)))
@@ -184,36 +381,30 @@ class DimensionLine(inkex.EffectExtension):
                   p2[1] + ny * (off + math.copysign(ext, off)))
             cmds += [["M", p1[0], p1[1]], ["L", w1[0], w1[1]]]
             cmds += [["M", p2[0], p2[1]], ["L", w2[0], w2[1]]]
-
-        # main dimension line
         cmds += [["M", a1[0], a1[1]], ["L", a2[0], a2[1]]]
 
-        line_node = PathElement()
-        line_node.path = Path(self._fmt(cmds))
-        line_node.style = {
+        line = PathElement()
+        line.path = Path(self._fmt(cmds))
+        line.style = {
             "fill": "none",
-            "stroke": self._color_css(),
+            "stroke": P["color"],
             "stroke-width": "{:.4f}".format(sw),
             "stroke-linejoin": "round",
             "stroke-linecap": "round",
         }
-        line_node.label = "dimension"
+        line.label = "dimension-line"
+        grp.add(line)
 
-        parent = sel[0].getparent()
-        parent.add(line_node)
-
-        # arrowheads (filled triangles), apex outward at each end
         if arrow > 1e-9:
             for tip, ddir in ((a1, (-ux, -uy)), (a2, (ux, uy))):
                 head = PathElement()
                 head.path = Path(self._arrow(tip, ddir, arrow))
-                head.style = {"fill": self._color_css(), "stroke": "none"}
+                head.style = {"fill": P["color"], "stroke": "none"}
                 head.label = "dimension-arrow"
-                parent.add(head)
+                grp.add(head)
 
-        # label
-        if not self.options.notext:
-            parent.add(self._label(a1, a2, length, ux, uy))
+        if not P["notext"]:
+            grp.add(self._label(a1, a2, length, ux, uy, P))
 
     def _arrow(self, tip, direction, size):
         ux, uy = direction
@@ -225,26 +416,26 @@ class DimensionLine(inkex.EffectExtension):
                 ["L", b2[0], b2[1]], ["Z"]]
         return self._fmt(cmds)
 
-    def _value_text(self, length_px):
-        if self.options.usevar:
-            return self.options.varname
-        val = self.svg.uutounit(length_px, self.options.unit)
-        txt = "{:.{p}f}".format(val, p=self.options.precision)
-        if self.options.suffix:
-            txt += " " + self.options.unit
+    def _value_text(self, length_uu, P):
+        if P["usevar"]:
+            return P["varname"]
+        val = self.svg.uutounit(length_uu, P["unit"])
+        txt = "{:.{p}f}".format(val, p=P["precision"])
+        if P["suffix"]:
+            txt += " " + P["unit"]
         return txt
 
-    def _label(self, a1, a2, length_px, ux, uy):
+    def _label(self, a1, a2, length_uu, ux, uy, P):
         mx, my = (a1[0] + a2[0]) / 2.0, (a1[1] + a2[1]) / 2.0
         angle = math.degrees(math.atan2(uy, ux))
         if angle > 90 or angle < -90:        # keep text upright
             angle += 180
-        fs = self.options.fontsize           # font size stays in px
+        fs = P["fontsize"]                   # font size stays in px
         rad = math.radians(angle)
         # "up" direction for the upright glyphs (perpendicular to the line)
         upx, upy = math.sin(rad), -math.cos(rad)
 
-        pos = self.options.textpos
+        pos = P["textpos"]
         if pos == "above":
             cx, cy = mx + upx * (fs * 0.6), my + upy * (fs * 0.6)
         elif pos == "below":
@@ -252,7 +443,7 @@ class DimensionLine(inkex.EffectExtension):
         else:                                # "center" -> sits on the line
             cx, cy = mx, my
 
-        txt = self._value_text(length_px)
+        txt = self._value_text(length_uu, P)
 
         grp = Group()
         grp.set("transform",
@@ -279,7 +470,7 @@ class DimensionLine(inkex.EffectExtension):
             "font-family": "sans-serif",
             "text-anchor": "middle",
             "dominant-baseline": "central",
-            "fill": self._color_css(),
+            "fill": P["color"],
         }
         ts = Tspan()
         ts.text = txt
