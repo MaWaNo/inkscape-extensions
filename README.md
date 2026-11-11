@@ -45,4 +45,4 @@ See each extension's own README for usage and parameters.
 
 GPL-2.0-or-later — see [LICENSE](LICENSE). Copyright © 2026
 Markus Wallner-Novak. (These extensions build on Inkscape's `inkex`
-library, which is GPL, so the project follows the same license.)
+library, which is GPL)
