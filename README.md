@@ -9,7 +9,7 @@ Custom Inkscape 1.3+ extensions for architectural drawing, under the
 | **Dimension Line** | Draws a dimension line between two points (path endpoints or bbox centers) with witness lines, end marks and a distance label; optional variable placeholder with sub/superscript. | [README](dimension_line_README.md) |
 | **Axonometric Projection** | Projects flat-drawn faces into oblique axonometry (side / top faces, optionally snapped to the document's axonometric grid). | [README](axo_projection_README.md) |
 
-German install sheet: [INSTALLATION_de.md](INSTALLATION_de.md).
+Install sheet: [English](INSTALLATION_en.md) · [Deutsch](INSTALLATION_de.md).
 
 ## Screenshots
 

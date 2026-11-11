@@ -43,6 +43,8 @@ Companion to wall_insulation.py (same Architecture submenu / conventions).
 Author: generated for Markus
 """
 
+import os
+import json
 import math
 import inkex
 from lxml import etree
@@ -141,6 +143,8 @@ class DimensionLine(inkex.EffectExtension):
         pars.add_argument("--var_italic", type=inkex.Boolean, default=True)
         pars.add_argument("--hide_source", type=inkex.Boolean, default=True)
         pars.add_argument("--on_existing", default="refresh")
+        pars.add_argument("--preset", default="off")
+        pars.add_argument("--preset_save", type=inkex.Boolean, default=False)
 
     # ---- units / colour helpers -----------------------------------------
 
@@ -231,6 +235,40 @@ class DimensionLine(inkex.EffectExtension):
             "var_italic": a("var_italic", "true") == "true",
         }
 
+    # ---- style preset slots (JSON file beside the extension) ------------
+
+    def _preset_path(self):
+        return os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "dimension_line_presets.json")
+
+    def _load_all_presets(self):
+        try:
+            with open(self._preset_path(), "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            return data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
+    def _load_preset(self, slot):
+        """Stored style for a slot, merged over current options for any
+        keys a slot saved by an older version might be missing."""
+        p = self._load_all_presets().get(str(slot))
+        if not isinstance(p, dict):
+            return None
+        merged = self._params_from_options()
+        merged.update(p)
+        return merged
+
+    def _save_preset(self, slot, P):
+        data = self._load_all_presets()
+        data[str(slot)] = P
+        try:
+            with open(self._preset_path(), "w", encoding="utf-8") as fh:
+                json.dump(data, fh, indent=1)
+        except OSError as exc:
+            raise inkex.AbortExtension(
+                "Could not write the preset file: %s" % exc)
+
     # ---- finding our own groups -----------------------------------------
 
     def _as_dim_group(self, el):
@@ -276,15 +314,20 @@ class DimensionLine(inkex.EffectExtension):
             else:
                 targets.append(el)
 
+        # Save a style into a preset slot. The style saved is the selected
+        # dimension's (if one is selected) else the Options-tab style.
+        if self.options.preset_save and self.options.preset != "off":
+            style = (self._params_from_group(groups[0])
+                     if len(groups) == 1 else self._params_from_options())
+            self._save_preset(self.options.preset, style)
+            self.msg("Saved style to preset slot %s." % self.options.preset)
+            if targets and len(groups) <= 1:
+                self._create(targets, style)
+            return
+
         # Only existing dimension(s) selected -> update from their source.
         if groups and not targets:
             self._update(groups[0])
-            return
-
-        # One existing dimension + target(s) -> copy its style to a new
-        # dimension of the target(s) ("pick style from another dimension").
-        if len(groups) == 1 and targets:
-            self._create(targets, self._params_from_group(groups[0]))
             return
 
         if len(groups) > 1:
@@ -293,8 +336,20 @@ class DimensionLine(inkex.EffectExtension):
                 "together with the line/objects to dimension.")
             return
 
-        # No existing dimension selected -> ordinary create with dialog style.
-        self._create(targets, self._params_from_options())
+        # Style for a new dimension, by precedence:
+        #   a selected dimension (donor) > a chosen preset slot > the dialog.
+        if len(groups) == 1:
+            style = self._params_from_group(groups[0])
+        elif self.options.preset != "off":
+            style = self._load_preset(self.options.preset)
+            if style is None:
+                self.msg("Preset slot %s is empty; using the Options-tab "
+                         "style." % self.options.preset)
+                style = self._params_from_options()
+        else:
+            style = self._params_from_options()
+
+        self._create(targets, style)
 
     def _create(self, targets, P):
         """Create a new dimension for the target object(s) with style P."""

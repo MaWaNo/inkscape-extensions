@@ -201,6 +201,22 @@ it selected as the style donor.
 copy kicks in when exactly one dimension plus other objects are
 selected.)
 
+### Style presets (dialog slots)
+
+The **Style preset** tab has five reusable slots, stored in
+`dimension_line_presets.json` next to the extension:
+
+- **Save:** pick a slot, tick *Save current style into this slot*, run.
+  The style saved is the **selected dimension's** (if you also selected
+  one) — so you can capture an existing dimension's look — otherwise the
+  **Options-tab** settings.
+- **Use:** pick a slot (save off) and run on your new line; the new
+  dimension uses that slot's style.
+
+Precedence when creating: a **selected dimension** (donor) > a **preset
+slot** > the **Options tab**. Inkscape dialogs are fixed, so the slots
+are numbered (1–5) rather than a live list of your dimensions.
+
 ## Notes / limitations
 
 - Select **one** line/path or **exactly two** objects; anything else
