@@ -57,6 +57,49 @@ class AxoProjection(inkex.EffectExtension):
         pars.add_argument("--lx", type=float, default=80.0)
         pars.add_argument("--ly", type=float, default=35.66)
         pars.add_argument("--angle", type=float, default=35.0)
+        pars.add_argument("--use_grid", type=inkex.Boolean, default=False)
+
+    def _read_axo_grid(self):
+        """Return (angle_x, angle_z) of the document's axonometric grid.
+
+        Inkscape writes it in the namedview as
+        <inkscape:grid type="axonomgrid" gridanglex=".." gridanglez=".."/>.
+        Returns None if there is no such grid.
+        """
+        best = None
+        for g in self.svg.xpath("//inkscape:grid"):
+            if g.get("type") != "axonomgrid":
+                continue
+            try:
+                angles = (float(g.get("gridanglex", "0")),
+                          float(g.get("gridanglez", "0")))
+            except ValueError:
+                continue
+            if g.get("enabled", "true") != "false":
+                return angles          # prefer an enabled grid
+            if best is None:
+                best = angles
+        return best
+
+    def _grid_angle(self, base):
+        """Depth-axis angle to use for this face, from the document grid."""
+        grid = self._read_axo_grid()
+        if grid is None:
+            raise inkex.AbortExtension(
+                "No axonometric grid found. Add one via File > Document "
+                "Properties > Grids (type: Axonometric), or switch off "
+                "'Align to document axonometric grid'.")
+        ax, az = grid
+        # side face recedes along the Z axis, top face along the X axis;
+        # if that axis is flat (0), fall back to whichever axis recedes.
+        a = az if base == "side" else ax
+        if not 0.0 < a < 90.0:
+            a = az if 0.0 < az < 90.0 else ax
+        if not 0.0 < a < 90.0:
+            raise inkex.AbortExtension(
+                "The axonometric grid has no usable depth angle for this "
+                "face (both grid angles are 0 or degenerate).")
+        return a
 
     def effect(self):
         items = [e for e in self.svg.selection.values()
@@ -69,8 +112,16 @@ class AxoProjection(inkex.EffectExtension):
 
         mode = self.options.mode
         base = mode.replace("_inv", "")
-        k = self.options.ly / self.options.lx
-        lin = _linear(base, k, self.options.angle)
+        if self.options.use_grid:
+            # Snap to the document's axonometric grid: depth angle from the
+            # grid, foreshortening k = 1/sin(angle) so one flat drawing-unit
+            # step rises exactly one grid row and corners land on the grid.
+            angle = self._grid_angle(base)
+            k = 1.0 / math.sin(math.radians(angle))
+        else:
+            angle = self.options.angle
+            k = self.options.ly / self.options.lx
+        lin = _linear(base, k, angle)
         if mode.endswith("_inv"):
             lin = _inverse(lin)
 

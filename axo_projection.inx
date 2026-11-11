@@ -21,7 +21,9 @@
                 <option value="top">Top edge</option>
             </param>
             <separator/>
-            <label appearance="header">Tripod (x horizontal, z vertical, same scale)</label>
+            <param name="use_grid" type="bool"
+                   gui-text="Align to document axonometric grid (angle + foreshortening)">false</param>
+            <label appearance="header">Tripod (used only when NOT aligning to the grid)</label>
             <param name="lx" type="float" min="0.001" max="10000.0" precision="3"
                    gui-text="x length (per reference length):">80.0</param>
             <param name="ly" type="float" min="0.001" max="10000.0" precision="3"
@@ -48,7 +50,16 @@ transform (stroke widths are not compensated).
 Ungrouping later pushes it down to the children.
 "Undo" modes apply the inverse matrix.
 
-Default tripod: x 80 / 0°, y 35.66 / 35°, z = x scale.</label>
+Default tripod: x 80 / 0°, y 35.66 / 35°, z = x scale.
+
+Align to document axonometric grid: reads the
+grid's depth angle (gridanglez for the side face,
+gridanglex for the top) and sets the foreshortening
+to 1/sin(angle), so one drawing-unit of depth rises
+exactly one grid row and corners land on the grid.
+Draw the flat face with the same unit as the grid's
+Spacing Y. Needs an Axonometric grid in the document
+(File &gt; Document Properties &gt; Grids).</label>
         </page>
     </param>
 
