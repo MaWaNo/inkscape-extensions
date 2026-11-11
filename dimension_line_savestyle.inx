@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+    <name>Dimension Line: Save Style</name>
+    <id>org.markus.architecture.dimension_line_savestyle</id>
+
+    <param name="save_slot" type="optiongroup" appearance="radio"
+           gui-text="Save the selected dimension's style to:">
+        <option value="1">Slot 1</option>
+        <option value="2">Slot 2</option>
+        <option value="3">Slot 3</option>
+        <option value="4">Slot 4</option>
+        <option value="5">Slot 5</option>
+    </param>
+    <label xml:space="preserve">Select one existing dimension, then run this to store
+its full style in the chosen slot. Apply it later from
+the Dimension Line dialog, "Use style from slot".
+
+Slots live in dimension_line_presets.json next to the
+extension.</label>
+
+    <effect>
+        <object-type>all</object-type>
+        <effects-menu>
+            <submenu name="Architecture"/>
+        </effects-menu>
+    </effect>
+
+    <script>
+        <command location="inx" interpreter="python">dimension_line.py</command>
+    </script>
+</inkscape-extension>

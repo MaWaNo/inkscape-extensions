@@ -11,13 +11,17 @@ Drei Erweiterungen für **Inkscape 1.3 oder neuer**, Menü
 
 1. Inkscape schließen.
 
-2. Diese **6 Dateien** in den Benutzer-Erweiterungsordner kopieren:
+2. Diese **7 Dateien** in den Benutzer-Erweiterungsordner kopieren:
 
    ```
-   wall_insulation.inx     wall_insulation.py
-   dimension_line.inx      dimension_line.py
-   axo_projection.inx      axo_projection.py
+   wall_insulation.inx          wall_insulation.py
+   dimension_line.inx           dimension_line.py
+   dimension_line_savestyle.inx
+   axo_projection.inx           axo_projection.py
    ```
+
+   (`dimension_line_savestyle.inx` ist der optionale Befehl „Save Style";
+   er nutzt `dimension_line.py` mit.)
 
    Ordner (in den Explorer-Adressbalken einfügen):
 

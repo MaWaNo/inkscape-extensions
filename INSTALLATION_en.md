@@ -11,13 +11,17 @@ Three extensions for **Inkscape 1.3 or newer**, menu
 
 1. Close Inkscape.
 
-2. Copy these **6 files** into the user extensions folder:
+2. Copy these **7 files** into the user extensions folder:
 
    ```
-   wall_insulation.inx     wall_insulation.py
-   dimension_line.inx      dimension_line.py
-   axo_projection.inx      axo_projection.py
+   wall_insulation.inx          wall_insulation.py
+   dimension_line.inx           dimension_line.py
+   dimension_line_savestyle.inx
+   axo_projection.inx           axo_projection.py
    ```
+
+   (`dimension_line_savestyle.inx` is the optional "Save Style" command;
+   it reuses `dimension_line.py`.)
 
    Folder (paste into the Explorer address bar):
 

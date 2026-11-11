@@ -118,27 +118,16 @@ editable. Move or edit it, then re-run to update.</label>
                 <option value="4">Slot 4</option>
                 <option value="5">Slot 5</option>
             </param>
-            <separator/>
-            <param name="save_slot" type="optiongroup" appearance="radio"
-                   gui-text="Save current style to slot (Apply = save only):">
-                <option value="none">None</option>
-                <option value="1">Slot 1</option>
-                <option value="2">Slot 2</option>
-                <option value="3">Slot 3</option>
-                <option value="4">Slot 4</option>
-                <option value="5">Slot 5</option>
-            </param>
             <label xml:space="preserve">Reusable style slots, stored in
 dimension_line_presets.json next to the extension.
 
-Save: set "Save current style to slot" to a slot and
-click Apply. That ONLY saves (no dimension is drawn)
-and is off by default, so a normal Apply never saves.
-The style saved is the SELECTED dimension's (if you
-also selected one), otherwise the Options-tab style.
-
 Use: set "Use style from slot" and run on your new
 line — the new dimension uses that slot's style.
+
+Save: select the dimension whose look you like and run
+Extensions &gt; Architecture &gt; Dimension Line: Save
+Style, then pick the slot. (Saving is a separate menu
+command so a normal Apply never saves.)
 
 Precedence when creating: a selected dimension (style
 donor) wins over a used slot, which wins over the

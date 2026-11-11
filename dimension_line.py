@@ -314,15 +314,18 @@ class DimensionLine(inkex.EffectExtension):
             else:
                 targets.append(el)
 
-        # Saving a style to a slot is a stand-alone action (it does not draw
-        # a dimension), so a normal Apply never saves and never messages.
-        # The style saved is the selected dimension's (if one is selected)
-        # else the Options-tab style.
+        # Saving a style to a slot (the "Save Style" menu command) captures
+        # the SELECTED dimension's style. It never draws a dimension, so it
+        # is fully separate from a normal Apply.
         if self.options.save_slot != "none":
-            style = (self._params_from_group(groups[0])
-                     if len(groups) == 1 else self._params_from_options())
-            self._save_preset(self.options.save_slot, style)
-            self.msg("Saved current style to preset slot %s."
+            if len(groups) != 1:
+                inkex.errormsg(
+                    "Select exactly one existing dimension whose style you "
+                    "want to save, then run 'Dimension Line: Save Style'.")
+                return
+            self._save_preset(self.options.save_slot,
+                              self._params_from_group(groups[0]))
+            self.msg("Saved the selected dimension's style to preset slot %s."
                      % self.options.save_slot)
             return
 
