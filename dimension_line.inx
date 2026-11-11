@@ -48,6 +48,11 @@
                 <option value="below">Below the line</option>
                 <option value="center">Centered on the line (covers it)</option>
             </param>
+            <param name="textorient" type="optiongroup" appearance="combo"
+                   gui-text="Text orientation:">
+                <option value="horizontal">Horizontal (upright, any line)</option>
+                <option value="aligned">Aligned with the line</option>
+            </param>
             <param name="fontsize" type="float" min="1.0" max="100.0"
                    precision="2" gui-text="Font size (px):">10.0</param>
             <param name="fontfamily" type="optiongroup" appearance="combo"

@@ -126,6 +126,7 @@ class DimensionLine(inkex.EffectExtension):
         pars.add_argument("--stroke_color", type=str, default="#000000")
         pars.add_argument("--notext", type=inkex.Boolean, default=False)
         pars.add_argument("--textpos", default="above")
+        pars.add_argument("--textorient", default="horizontal")
         pars.add_argument("--usevar", type=inkex.Boolean, default=False)
         pars.add_argument("--varname", default="{B}")
         pars.add_argument("--var_italic", type=inkex.Boolean, default=True)
@@ -170,6 +171,7 @@ class DimensionLine(inkex.EffectExtension):
             "suffix": self.options.suffix,
             "notext": self.options.notext,
             "textpos": self.options.textpos,
+            "textorient": self.options.textorient,
             "usevar": self.options.usevar,
             "varname": self.options.varname,
             "var_italic": self.options.var_italic,
@@ -191,6 +193,7 @@ class DimensionLine(inkex.EffectExtension):
         s("suffix", "true" if P["suffix"] else "false")
         s("notext", "true" if P["notext"] else "false")
         s("textpos", P["textpos"])
+        s("textorient", P["textorient"])
         s("usevar", "true" if P["usevar"] else "false")
         s("varname", P["varname"])
         s("var_italic", "true" if P["var_italic"] else "false")
@@ -213,6 +216,7 @@ class DimensionLine(inkex.EffectExtension):
             "suffix": a("suffix", "false") == "true",
             "notext": a("notext", "false") == "true",
             "textpos": a("textpos", "above"),
+            "textorient": a("textorient", "aligned"),
             "usevar": a("usevar", "false") == "true",
             "varname": a("varname", "{B}"),
             "var_italic": a("var_italic", "true") == "true",
@@ -554,14 +558,7 @@ class DimensionLine(inkex.EffectExtension):
         rad = math.radians(angle)
         # "up" direction for the upright glyphs (perpendicular to the line)
         upx, upy = math.sin(rad), -math.cos(rad)
-
-        pos = P["textpos"]
-        if pos == "above":
-            cx, cy = mx + upx * (fs * 0.6), my + upy * (fs * 0.6)
-        elif pos == "below":
-            cx, cy = mx - upx * (fs * 0.6), my - upy * (fs * 0.6)
-        else:                                # "center" -> sits on the line
-            cx, cy = mx, my
+        horizontal = P["textorient"] == "horizontal"
 
         txt = self._value_text(length_uu, P)
         # The variable text may carry sub/superscript markup; the measured
@@ -574,9 +571,24 @@ class DimensionLine(inkex.EffectExtension):
             base_italic = False
         plain = "".join(r[0] for r in runs)
 
+        pos = P["textpos"]
+        if pos == "center":                  # sits on the line
+            cx, cy = mx, my
+        else:
+            d = fs * 0.6
+            # horizontal text beside a steep line must clear it: add the
+            # share of the text's half-width that lies along the offset.
+            if horizontal:
+                d += 0.5 * max(1, len(plain)) * fs * 0.6 * abs(upx)
+            sign = 1.0 if pos == "above" else -1.0
+            cx, cy = mx + sign * upx * d, my + sign * upy * d
+
+        textangle = 0.0 if horizontal else angle
+
         grp = Group()
-        grp.set("transform",
-                "rotate({:.3f} {:.3f} {:.3f})".format(angle, cx, cy))
+        if abs(textangle) > 1e-9:
+            grp.set("transform",
+                    "rotate({:.3f} {:.3f} {:.3f})".format(textangle, cx, cy))
         grp.label = "dimension-text"
 
         # centered text covers the line: white backing box for readability

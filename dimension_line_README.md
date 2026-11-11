@@ -99,6 +99,7 @@ Geometry is entered in **mm** and converted to document user units:
 | Stroke color | color of line, end marks and text |
 | No text | draw only the geometry (line + witness + arrows), no label |
 | Text position | `above` / `below` the line, or `center` (sits on the line over a white backing box so it covers the line for readability) |
+| Text orientation | `horizontal` (label stays upright beside any line, clearing it) or `aligned` (label rotates to follow the line, kept upright) |
 | Font size (px) | label size in px |
 | Font | label font family — pick from the list (sans-serif, serif, IBM Plex Sans, …) |
 | Custom font | type any installed font family; overrides the list when not empty |
