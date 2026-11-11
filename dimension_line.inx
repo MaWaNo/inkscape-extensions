@@ -110,7 +110,7 @@ editable. Move or edit it, then re-run to update.</label>
         </page>
         <page name="preset" gui-text="Style preset">
             <param name="preset" type="optiongroup" appearance="combo"
-                   gui-text="Style preset slot:">
+                   gui-text="Use style from slot:">
                 <option value="off">(off)</option>
                 <option value="1">Slot 1</option>
                 <option value="2">Slot 2</option>
@@ -118,26 +118,32 @@ editable. Move or edit it, then re-run to update.</label>
                 <option value="4">Slot 4</option>
                 <option value="5">Slot 5</option>
             </param>
-            <param name="preset_save" type="bool"
-                   gui-text="Save current style into this slot">false</param>
+            <separator/>
+            <param name="save_slot" type="optiongroup" appearance="radio"
+                   gui-text="Save current style to slot (Apply = save only):">
+                <option value="none">None</option>
+                <option value="1">Slot 1</option>
+                <option value="2">Slot 2</option>
+                <option value="3">Slot 3</option>
+                <option value="4">Slot 4</option>
+                <option value="5">Slot 5</option>
+            </param>
             <label xml:space="preserve">Reusable style slots, stored in
 dimension_line_presets.json next to the extension.
 
-Save a style:
-  pick a slot, tick "Save current style into this
-  slot", run. The style saved is the SELECTED
-  dimension's (if you also selected one), otherwise
-  the Options-tab settings.
+Save: set "Save current style to slot" to a slot and
+click Apply. That ONLY saves (no dimension is drawn)
+and is off by default, so a normal Apply never saves.
+The style saved is the SELECTED dimension's (if you
+also selected one), otherwise the Options-tab style.
 
-Use a style:
-  pick a slot (Save off) and run on your new line —
-  the new dimension uses that slot's style.
+Use: set "Use style from slot" and run on your new
+line — the new dimension uses that slot's style.
 
-Precedence when creating: a selected dimension
-(style donor) wins over a preset slot, which wins
-over the Options tab. Inkscape dialogs are fixed,
-so the slots are numbered rather than a live list
-of your dimensions.</label>
+Precedence when creating: a selected dimension (style
+donor) wins over a used slot, which wins over the
+Options tab. Inkscape dialogs are fixed, so the slots
+are numbered, not a live list of your dimensions.</label>
         </page>
         <page name="var" gui-text="Variable">
             <param name="usevar" type="bool"

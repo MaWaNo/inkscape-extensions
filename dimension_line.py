@@ -144,7 +144,7 @@ class DimensionLine(inkex.EffectExtension):
         pars.add_argument("--hide_source", type=inkex.Boolean, default=True)
         pars.add_argument("--on_existing", default="refresh")
         pars.add_argument("--preset", default="off")
-        pars.add_argument("--preset_save", type=inkex.Boolean, default=False)
+        pars.add_argument("--save_slot", default="none")
 
     # ---- units / colour helpers -----------------------------------------
 
@@ -314,15 +314,16 @@ class DimensionLine(inkex.EffectExtension):
             else:
                 targets.append(el)
 
-        # Save a style into a preset slot. The style saved is the selected
-        # dimension's (if one is selected) else the Options-tab style.
-        if self.options.preset_save and self.options.preset != "off":
+        # Saving a style to a slot is a stand-alone action (it does not draw
+        # a dimension), so a normal Apply never saves and never messages.
+        # The style saved is the selected dimension's (if one is selected)
+        # else the Options-tab style.
+        if self.options.save_slot != "none":
             style = (self._params_from_group(groups[0])
                      if len(groups) == 1 else self._params_from_options())
-            self._save_preset(self.options.preset, style)
-            self.msg("Saved style to preset slot %s." % self.options.preset)
-            if targets and len(groups) <= 1:
-                self._create(targets, style)
+            self._save_preset(self.options.save_slot, style)
+            self.msg("Saved current style to preset slot %s."
+                     % self.options.save_slot)
             return
 
         # Only existing dimension(s) selected -> update from their source.

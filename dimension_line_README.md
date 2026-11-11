@@ -206,16 +206,22 @@ selected.)
 The **Style preset** tab has five reusable slots, stored in
 `dimension_line_presets.json` next to the extension:
 
-- **Save:** pick a slot, tick *Save current style into this slot*, run.
-  The style saved is the **selected dimension's** (if you also selected
-  one) — so you can capture an existing dimension's look — otherwise the
-  **Options-tab** settings.
-- **Use:** pick a slot (save off) and run on your new line; the new
+- **Save** — set *Save current style to slot* to a slot and click Apply.
+  This **only saves** (no dimension is drawn) and is **None** by default,
+  so a normal Apply never saves and shows no message. The style saved is
+  the **selected dimension's** (if you also selected one) — so you can
+  capture an existing dimension's look — otherwise the **Options-tab**
+  settings.
+- **Use** — set *Use style from slot* and run on your new line; the new
   dimension uses that slot's style.
 
-Precedence when creating: a **selected dimension** (donor) > a **preset
-slot** > the **Options tab**. Inkscape dialogs are fixed, so the slots
-are numbered (1–5) rather than a live list of your dimensions.
+Precedence when creating: a **selected dimension** (donor) > a **used
+slot** > the **Options tab**.
+
+> Inkscape dialogs have only the single *Apply* button and no clickable
+> action buttons, so "save" is a radio choice (None / Slot 1–5) you Apply
+> once, and the slots are numbered rather than a live list of your
+> dimensions.
 
 ## Notes / limitations
 
