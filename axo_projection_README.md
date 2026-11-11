@@ -58,6 +58,16 @@ the Inkscape grid (`File → Document Properties → Grids`, type
 Draw the flat face with the **same unit as the grid's Spacing Y**. If
 the document has no axonometric grid, the extension stops with a hint.
 
+**Several grids:** if the document has more than one axonometric grid,
+the first **enabled** one is used; set **Grid #** to `1`, `2`, … to pick
+a specific one.
+
+**Recalculated values pop up in a window:** after running, Inkscape
+shows a message listing the grid used and the recalculated **y angle**,
+**x length** and **y length** (`k`). An Inkscape effect extension cannot
+write those back into the dialog's own fields, so they are reported in
+this window instead.
+
 ## Notes
 
 - Stroke widths are **not** compensated (the matrix scales them with the
