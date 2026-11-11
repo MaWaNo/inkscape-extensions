@@ -40,7 +40,7 @@ L1) while still using the real distance for placement.
 
 Companion to wall_insulation.py (same Architecture submenu / conventions).
 
-Author: generated for Markus
+Author: Markus Wallner-Novak, AI-assisted by Claude Code
 """
 
 import os

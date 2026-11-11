@@ -23,7 +23,7 @@ depth axis y at an angle, foreshortened by k = ly / lx.
 The joint line (a bbox edge of the selection) stays fixed. The matrix is
 prepended to each selected object's transform in document coordinates.
 
-Author: generated for Markus
+Author: Markus Wallner-Novak, AI-assisted by Claude Code
 """
 
 import math

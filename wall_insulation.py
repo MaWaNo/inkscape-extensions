@@ -21,7 +21,7 @@ Styles:
   - batt   : soft looped/wavy ribbon (semicircle loops, alternating)
   - rigid  : diagonal zig-zag hatch
 
-Author: generated for Markus
+Author: Markus Wallner-Novak, AI-assisted by Claude Code
 """
 
 import math
