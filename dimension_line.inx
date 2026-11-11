@@ -26,8 +26,16 @@
                    precision="2" gui-text="Line offset (mm, 0 = on the points):">5.0</param>
             <param name="ext" type="float" min="0.0" max="200.0"
                    precision="2" gui-text="Witness extension (mm):">1.5</param>
+            <param name="ends" type="optiongroup" appearance="combo"
+                   gui-text="End marks:">
+                <option value="arrow">Arrow (filled triangle)</option>
+                <option value="openarrow">Open arrow (stroked)</option>
+                <option value="tick">Tick / slash (45°, architect)</option>
+                <option value="dot">Dot (filled circle)</option>
+                <option value="none">None</option>
+            </param>
             <param name="arrow" type="float" min="0.0" max="50.0"
-                   precision="2" gui-text="Arrow size (mm, 0 = none):">2.5</param>
+                   precision="2" gui-text="End mark size (mm, 0 = none):">2.5</param>
             <param name="stroke_width" type="float" min="0.01" max="20.0"
                    precision="2" gui-text="Stroke width (mm):">0.25</param>
             <param name="stroke_color" type="color" gui-text="Stroke color:">255</param>
@@ -95,14 +103,25 @@ editable. Move or edit it, then re-run to update.</label>
                    gui-text="Replace value with a variable">false</param>
             <param name="varname" type="string"
                    gui-text="Variable text:">{B}</param>
+            <param name="var_italic" type="bool"
+                   gui-text="Italic symbol (upright index)">true</param>
             <label xml:space="preserve">When enabled, the measured number is replaced
 by the text above (e.g. {B}, L1, b_eff). The
 geometry is still placed using the real distance,
 so you can toggle this without moving anything.
 
-The label is plain SVG text, so a later
-find/replace across the file updates every
-instance at once.</label>
+Subscripts / superscripts:
+  t_CLT        -> t with CLT as subscript
+  f_{m,CLT}    -> braces group multi-part indices
+  A^2          -> superscript
+The index is always UPRIGHT; with "Italic symbol"
+the base letter is italic (ISO quantity style:
+italic symbol, upright index), as in t_CLT.
+Braces without _ or ^ stay literal, so {B} is
+unchanged.
+
+The label is SVG text, so a later find/replace
+across the file updates every instance at once.</label>
         </page>
         <page name="help" gui-text="Help">
             <label xml:space="preserve">Two ways to use it:

@@ -93,9 +93,10 @@ Geometry is entered in **mm** and converted to document user units:
 | Append unit | add the unit string after the number (e.g. `1250 mm`) |
 | Line offset (mm) | distance the dimension line sits parallel to the span; `0` = drawn directly on the points; sign sets which side |
 | Witness extension (mm) | how far the witness lines run past the dimension line |
-| Arrow size (mm) | filled-triangle arrowhead size; `0` = no arrows |
-| Stroke width (mm) | line weight of line + witness lines |
-| Stroke color | color of line, arrows and text |
+| End marks | terminator at each end: `arrow` (filled triangle), `openarrow` (stroked), `tick` (45° architect slash), `dot` (filled circle), `none` |
+| End mark size (mm) | terminator size; `0` = none |
+| Stroke width (mm) | line weight of line + witness lines (also open arrow / tick) |
+| Stroke color | color of line, end marks and text |
 | No text | draw only the geometry (line + witness + arrows), no label |
 | Text position | `above` / `below` the line, or `center` (sits on the line over a white backing box so it covers the line for readability) |
 | Font size (px) | label size in px |
@@ -114,13 +115,28 @@ Geometry is entered in **mm** and converted to document user units:
 | Param | Meaning |
 |-------|---------|
 | Replace value with a variable | use a placeholder instead of the number |
-| Variable text | the text to show (e.g. `{B}`, `L1`, `b_eff`) |
+| Variable text | the text to show (e.g. `{B}`, `t_CLT`, `f_{m,CLT}`) |
+| Italic symbol (upright index) | italicize the base symbol while keeping indices upright (ISO quantity style) |
 
 When the variable is enabled, only the *displayed* text changes — the
 line, offset and label position are still computed from the real
 distance, so you can toggle it without anything moving. The label is
-plain SVG text, so a later find/replace across the file updates every
+SVG text, so a later find/replace across the file updates every
 instance at once.
+
+**Subscripts / superscripts** (variable text only):
+
+| Input | Result |
+|-------|--------|
+| `t_CLT` | `t` with `CLT` as subscript |
+| `f_{m,CLT}` | braces group a multi-part index |
+| `A^2` | superscript |
+
+The index is always rendered **upright** (`font-style:normal`). With
+*Italic symbol* on, the base letter is italic and the index upright —
+the ISO 80000 convention for physical quantities (italic symbol,
+upright descriptive subscript), e.g. *t*<sub>CLT</sub>. Braces without a
+preceding `_`/`^` stay literal, so `{B}` renders as `{B}`.
 
 ## How the points are chosen
 

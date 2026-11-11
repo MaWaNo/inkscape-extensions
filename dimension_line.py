@@ -37,7 +37,8 @@ Author: generated for Markus
 import math
 import inkex
 from lxml import etree
-from inkex import PathElement, TextElement, Tspan, Path, Group, Rectangle
+from inkex import (PathElement, TextElement, Tspan, Path, Group, Rectangle,
+                   Circle)
 
 # Custom namespace for the metadata we tag onto a dimension group, so the
 # extension can recognise and rebuild its own objects (cf. TexText).
@@ -117,6 +118,7 @@ class DimensionLine(inkex.EffectExtension):
         pars.add_argument("--offset", type=float, default=5.0)
         pars.add_argument("--ext", type=float, default=1.5)
         pars.add_argument("--arrow", type=float, default=2.5)
+        pars.add_argument("--ends", default="arrow")
         pars.add_argument("--fontsize", type=float, default=10.0)
         pars.add_argument("--fontfamily", default="sans-serif")
         pars.add_argument("--fontcustom", default="")
@@ -126,6 +128,7 @@ class DimensionLine(inkex.EffectExtension):
         pars.add_argument("--textpos", default="above")
         pars.add_argument("--usevar", type=inkex.Boolean, default=False)
         pars.add_argument("--varname", default="{B}")
+        pars.add_argument("--var_italic", type=inkex.Boolean, default=True)
         pars.add_argument("--hide_source", type=inkex.Boolean, default=True)
         pars.add_argument("--on_existing", default="refresh")
 
@@ -156,6 +159,7 @@ class DimensionLine(inkex.EffectExtension):
             "off": self.options.offset,            # mm
             "ext": self.options.ext,               # mm
             "arrow": self.options.arrow,           # mm
+            "ends": self.options.ends,
             "sw": self.options.stroke_width,       # mm
             "fontsize": self.options.fontsize,     # px
             "font": (self.options.fontcustom.strip()
@@ -168,6 +172,7 @@ class DimensionLine(inkex.EffectExtension):
             "textpos": self.options.textpos,
             "usevar": self.options.usevar,
             "varname": self.options.varname,
+            "var_italic": self.options.var_italic,
         }
 
     def _store_params(self, g, P):
@@ -176,6 +181,7 @@ class DimensionLine(inkex.EffectExtension):
         s("offset", P["off"])
         s("ext", P["ext"])
         s("arrow", P["arrow"])
+        s("ends", P["ends"])
         s("stroke-width", P["sw"])
         s("fontsize", P["fontsize"])
         s("font", P["font"])
@@ -187,6 +193,7 @@ class DimensionLine(inkex.EffectExtension):
         s("textpos", P["textpos"])
         s("usevar", "true" if P["usevar"] else "false")
         s("varname", P["varname"])
+        s("var_italic", "true" if P["var_italic"] else "false")
 
     def _params_from_group(self, g):
         def a(name, default=""):
@@ -196,6 +203,7 @@ class DimensionLine(inkex.EffectExtension):
             "off": float(a("offset", "0")),
             "ext": float(a("ext", "0")),
             "arrow": float(a("arrow", "0")),
+            "ends": a("ends", "arrow"),
             "sw": float(a("stroke-width", "0.25")),
             "fontsize": float(a("fontsize", "10")),
             "font": a("font", "sans-serif"),
@@ -207,6 +215,7 @@ class DimensionLine(inkex.EffectExtension):
             "textpos": a("textpos", "above"),
             "usevar": a("usevar", "false") == "true",
             "varname": a("varname", "{B}"),
+            "var_italic": a("var_italic", "true") == "true",
         }
 
     # ---- finding our own groups -----------------------------------------
@@ -416,25 +425,73 @@ class DimensionLine(inkex.EffectExtension):
         line.label = "dimension-line"
         grp.add(line)
 
-        if arrow > 1e-9:
-            for tip, ddir in ((a1, (-ux, -uy)), (a2, (ux, uy))):
-                head = PathElement()
-                head.path = Path(self._arrow(tip, ddir, arrow))
-                head.style = {"fill": P["color"], "stroke": "none"}
-                head.label = "dimension-arrow"
-                grp.add(head)
+        self._add_terminators(grp, a1, a2, ux, uy, nx, ny, arrow, sw, P)
 
         if not P["notext"]:
             grp.add(self._label(a1, a2, length, ux, uy, P))
 
-    def _arrow(self, tip, direction, size):
+    # ---- end terminators -------------------------------------------------
+
+    def _add_terminators(self, grp, a1, a2, ux, uy, nx, ny, size, sw, P):
+        """Draw the chosen end marks at both ends of the dimension line."""
+        style = P["ends"]
+        if style == "none" or size <= 1e-9:
+            return
+
+        for tip, (dx, dy) in ((a1, (-ux, -uy)), (a2, (ux, uy))):
+            if style == "arrow":                       # filled triangle
+                head = PathElement()
+                head.path = Path(self._arrow(tip, (dx, dy), size, closed=True))
+                head.style = {"fill": P["color"], "stroke": "none"}
+                head.label = "dimension-arrow"
+                grp.add(head)
+            elif style == "openarrow":                 # stroked open "<"
+                head = PathElement()
+                head.path = Path(self._arrow(tip, (dx, dy), size, closed=False))
+                head.style = {
+                    "fill": "none", "stroke": P["color"],
+                    "stroke-width": "{:.4f}".format(sw),
+                    "stroke-linecap": "round", "stroke-linejoin": "round",
+                }
+                head.label = "dimension-arrow"
+                grp.add(head)
+            elif style == "tick":                      # 45° architect slash
+                a = (tip[0] + size * (0.5 * ux - 0.5 * nx),
+                     tip[1] + size * (0.5 * uy - 0.5 * ny))
+                b = (tip[0] + size * (-0.5 * ux + 0.5 * nx),
+                     tip[1] + size * (-0.5 * uy + 0.5 * ny))
+                mark = PathElement()
+                mark.path = Path(self._fmt(
+                    [["M", a[0], a[1]], ["L", b[0], b[1]]]))
+                mark.style = {
+                    "fill": "none", "stroke": P["color"],
+                    "stroke-width": "{:.4f}".format(sw),
+                    "stroke-linecap": "round",
+                }
+                mark.label = "dimension-tick"
+                grp.add(mark)
+            elif style == "dot":                       # filled circle
+                dot = Circle()
+                dot.set("cx", "{:.4f}".format(tip[0]))
+                dot.set("cy", "{:.4f}".format(tip[1]))
+                dot.set("r", "{:.4f}".format(size * 0.4))
+                dot.style = {"fill": P["color"], "stroke": "none"}
+                dot.label = "dimension-dot"
+                grp.add(dot)
+
+    def _arrow(self, tip, direction, size, closed=True):
         ux, uy = direction
         px, py = -uy, ux
         bx, by = tip[0] - ux * size, tip[1] - uy * size
-        b1 = (bx + px * size * 0.35, by + py * size * 0.35)
-        b2 = (bx - px * size * 0.35, by - py * size * 0.35)
-        cmds = [["M", tip[0], tip[1]], ["L", b1[0], b1[1]],
-                ["L", b2[0], b2[1]], ["Z"]]
+        hw = 0.35 if closed else 0.4
+        b1 = (bx + px * size * hw, by + py * size * hw)
+        b2 = (bx - px * size * hw, by - py * size * hw)
+        if closed:
+            cmds = [["M", tip[0], tip[1]], ["L", b1[0], b1[1]],
+                    ["L", b2[0], b2[1]], ["Z"]]
+        else:
+            cmds = [["M", b1[0], b1[1]], ["L", tip[0], tip[1]],
+                    ["L", b2[0], b2[1]]]
         return self._fmt(cmds)
 
     def _value_text(self, length_uu, P):
@@ -445,6 +502,48 @@ class DimensionLine(inkex.EffectExtension):
         if P["suffix"]:
             txt += " " + P["unit"]
         return txt
+
+    @staticmethod
+    def _parse_runs(s):
+        """Split a label into (text, kind) runs, kind in base/sub/sup.
+
+        `_x`/`^x` take the following run (letters, digits, commas …) as a
+        sub/superscript; `_{...}`/`^{...}` group an explicit span. Braces
+        without a preceding `_`/`^` stay literal, so `{B}` is unchanged.
+        """
+        runs = []
+        buf = []
+        i, n = 0, len(s)
+
+        def flush():
+            if buf:
+                runs.append(("".join(buf), "base"))
+                buf.clear()
+
+        while i < n:
+            c = s[i]
+            if c in "_^" and i + 1 < n:
+                kind = "sub" if c == "_" else "sup"
+                i += 1
+                if s[i] == "{":
+                    j = s.find("}", i + 1)
+                    if j == -1:
+                        content, i = s[i + 1:], n
+                    else:
+                        content, i = s[i + 1:j], j + 1
+                else:
+                    j = i
+                    while j < n and s[j] not in " _^{":
+                        j += 1
+                    content, i = s[i:j], j
+                flush()
+                if content:
+                    runs.append((content, kind))
+            else:
+                buf.append(c)
+                i += 1
+        flush()
+        return runs or [("", "base")]
 
     def _label(self, a1, a2, length_uu, ux, uy, P):
         mx, my = (a1[0] + a2[0]) / 2.0, (a1[1] + a2[1]) / 2.0
@@ -465,6 +564,15 @@ class DimensionLine(inkex.EffectExtension):
             cx, cy = mx, my
 
         txt = self._value_text(length_uu, P)
+        # The variable text may carry sub/superscript markup; the measured
+        # value is always a plain run.
+        if P["usevar"]:
+            runs = self._parse_runs(txt)
+            base_italic = P["var_italic"]
+        else:
+            runs = [(txt, "base")]
+            base_italic = False
+        plain = "".join(r[0] for r in runs)
 
         grp = Group()
         grp.set("transform",
@@ -473,7 +581,7 @@ class DimensionLine(inkex.EffectExtension):
 
         # centered text covers the line: white backing box for readability
         if pos == "center":
-            w = max(1, len(txt)) * fs * 0.6
+            w = max(1, len(plain)) * fs * 0.6
             pad = fs * 0.25
             rect = Rectangle()
             rect.set("x", "{:.3f}".format(cx - w / 2.0 - pad))
@@ -491,11 +599,20 @@ class DimensionLine(inkex.EffectExtension):
             "font-family": P["font"],
             "text-anchor": "middle",
             "dominant-baseline": "central",
+            "font-style": "italic" if base_italic else "normal",
             "fill": P["color"],
         }
-        ts = Tspan()
-        ts.text = txt
-        text.append(ts)
+        for content, kind in runs:
+            ts = Tspan()
+            ts.text = content
+            if kind in ("sub", "sup"):
+                # indices are kept UPRIGHT (normal), smaller, and shifted
+                ts.style = {
+                    "font-style": "normal",
+                    "font-size": "65%",
+                    "baseline-shift": "sub" if kind == "sub" else "super",
+                }
+            text.append(ts)
         grp.add(text)
         return grp
 
