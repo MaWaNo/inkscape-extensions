@@ -127,6 +127,48 @@ class AxoProjection(inkex.EffectExtension):
             "x length = 1,  y length = %.4f  (k = 1/sin = %.4f)" % (a, k, k))
         return a, k, "\n".join(lines)
 
+    def _iso_setup(self, mode):
+        """Linear map + report for a true-isometric face from both grid
+        angles. Unlike the oblique modes, no axis stays horizontal: the two
+        in-plane axes follow the grid's two diagonals, so the top face is a
+        rhombus. Needs an axonometric grid with both angles in (0, 90)."""
+        if not self.options.use_grid:
+            raise inkex.AbortExtension(
+                "Isometric modes read the grid's two angles. Tick 'Align to "
+                "document axonometric grid' (and have an Axonometric grid in "
+                "the document).")
+        grids = self._axo_grids()
+        if not grids:
+            raise inkex.AbortExtension(
+                "No axonometric grid found. Add one via File > Document "
+                "Properties > Grids (type: Axonometric).")
+        g = self._pick_grid(grids)
+        ax, az = g["ax"], g["az"]
+        if not (0.0 < ax < 90.0 and 0.0 < az < 90.0):
+            raise inkex.AbortExtension(
+                "Isometric modes need BOTH grid angles strictly between 0 and "
+                "90 deg. This grid has an axis at 0 deg (an oblique grid) - "
+                "use the plain 'side' / 'top' modes for that.")
+        # foreshortening 1/sin is baked in: one drawing-unit along an axis
+        # rises one grid row, so corners land on the grid (Spacing-Y unit).
+        cotx = 1.0 / math.tan(math.radians(ax))     # left axis (gridanglex)
+        cotz = 1.0 / math.tan(math.radians(az))     # right axis (gridanglez)
+        if mode == "iso_top":                       # x-y plane -> rhombus
+            lin = (cotz, -1.0, cotx, 1.0)
+            face = "top (x-y rhombus)"
+        elif mode == "iso_right":                   # x-z plane, right axis
+            lin = (cotz, -1.0, 0.0, 1.0)
+            face = "right face (x-z)"
+        elif mode == "iso_left":                    # y-z plane, left axis
+            lin = (-cotx, -1.0, 0.0, 1.0)
+            face = "left face (y-z)"
+        else:
+            raise inkex.AbortExtension("Unknown isometric mode.")
+        report = ("Isometric %s\nGrid '%s': left axis (x) %.3f deg, right "
+                  "axis (z) %.3f deg.\nDraw the face in the grid's Spacing-Y "
+                  "unit; corners land on the grid." % (face, g["label"], ax, az))
+        return lin, report
+
     def effect(self):
         items = [e for e in self.svg.selection.values()
                  if isinstance(e, inkex.ShapeElement)]
@@ -138,16 +180,22 @@ class AxoProjection(inkex.EffectExtension):
 
         mode = self.options.mode
         base = mode.replace("_inv", "")
-        if self.options.use_grid:
-            # Snap to the document's axonometric grid: depth angle from the
-            # grid, foreshortening k = 1/sin(angle) so one flat drawing-unit
-            # step rises exactly one grid row and corners land on the grid.
+        iso = mode.startswith("iso_")
+        if iso:
+            # True isometric: two diagonals from the grid (top = rhombus).
+            lin, report = self._iso_setup(mode)
+            self.msg(report)
+        elif self.options.use_grid:
+            # Oblique, snapped to the grid: depth angle from the grid,
+            # foreshortening k = 1/sin(angle) so one flat drawing-unit step
+            # rises exactly one grid row and corners land on the grid.
             angle, k, report = self._grid_setup(base)
             self.msg(report)       # show the recalculated values in a window
+            lin = _linear(base, k, angle)
         else:
-            angle = self.options.angle
-            k = self.options.ly / self.options.lx
-        lin = _linear(base, k, angle)
+            # Oblique, manual tripod.
+            lin = _linear(base, self.options.ly / self.options.lx,
+                          self.options.angle)
         if mode.endswith("_inv"):
             lin = _inverse(lin)
 
@@ -164,9 +212,15 @@ class AxoProjection(inkex.EffectExtension):
 
         pivot = self.options.pivot
         if pivot == "auto":
-            pivot = "left" if base == "side" else "bottom"
-        px = {"left": bbox.left, "right": bbox.right}.get(pivot, bbox.center_x)
-        py = {"top": bbox.top, "bottom": bbox.bottom}.get(pivot, bbox.center_y)
+            if iso:                           # keep the bottom-left corner
+                px, py = bbox.left, bbox.bottom
+            elif base == "side":
+                px, py = bbox.left, bbox.center_y
+            else:                             # top
+                px, py = bbox.center_x, bbox.bottom
+        else:
+            px = {"left": bbox.left, "right": bbox.right}.get(pivot, bbox.center_x)
+            py = {"top": bbox.top, "bottom": bbox.bottom}.get(pivot, bbox.center_y)
 
         a, b, c, d = lin
         # P = T(p) * A * T(-p)

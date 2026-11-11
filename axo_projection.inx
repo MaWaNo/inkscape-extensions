@@ -7,10 +7,13 @@
         <page name="opts" gui-text="Options">
             <param name="mode" type="optiongroup" appearance="combo"
                    gui-text="Projection:">
-                <option value="side">Flat → side face y-z (horizontal becomes y)</option>
-                <option value="top">Flat → top face x-y (upwards becomes y)</option>
-                <option value="side_inv">Side face y-z → flat (undo)</option>
-                <option value="top_inv">Top face x-y → flat (undo)</option>
+                <option value="side">Oblique: side face y-z (horizontal becomes y)</option>
+                <option value="top">Oblique: top face x-y (upwards becomes y)</option>
+                <option value="side_inv">Oblique: side face y-z → flat (undo)</option>
+                <option value="top_inv">Oblique: top face x-y → flat (undo)</option>
+                <option value="iso_right">Isometric: right face x-z (needs grid)</option>
+                <option value="iso_left">Isometric: left face y-z (needs grid)</option>
+                <option value="iso_top">Isometric: top x-y rhombus (needs grid)</option>
             </param>
             <param name="pivot" type="optiongroup" appearance="combo"
                    gui-text="Fixed joint line (selection bbox):">
@@ -68,7 +71,18 @@ first ENABLED one is used; set "Grid #" to 1, 2, …
 to pick another. After running, a window reports the
 grid used and the recalculated y angle / x / y — an
 Inkscape extension cannot write those back into the
-fields above, so they are shown there instead.</label>
+fields above, so they are shown there instead.
+
+Oblique vs isometric:
+- Oblique (side/top) keeps one axis horizontal and
+  one vertical; use it on an OBLIQUE grid, i.e. one
+  grid angle = 0 (e.g. Angle X 0, Angle Z 35).
+- Isometric (iso_right/iso_left/iso_top) sends BOTH
+  in-plane axes along the grid's two diagonals, so
+  the top is a rhombus. Use it on a grid where both
+  angles are non-zero (e.g. 30/30). Needs the grid
+  (reads both angles); the x-z face leans with Angle
+  Z, the y-z face with Angle X, the top uses both.</label>
         </page>
     </param>
 

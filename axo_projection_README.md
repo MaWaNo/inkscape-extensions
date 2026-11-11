@@ -2,10 +2,18 @@
 
 ![A flat-drawn face projected to a side face and a top face](images/axo_projection.png)
 
-Projects **flat-drawn faces** into oblique axonometry: draw a face true
-shape (x horizontal, z vertical), then shear it onto the **side** (y–z)
-or **top** (x–y) plane. One bbox edge (the joint line) stays fixed; the
-matrix is prepended to each selected object's transform.
+Projects **flat-drawn faces** into axonometry: draw a face true shape,
+then shear it onto a coordinate plane. One bbox edge (the joint line)
+stays fixed; the matrix is prepended to each selected object's transform.
+Two families of modes:
+
+- **Oblique** (`side` / `top`) — one axis stays horizontal, one vertical,
+  one recedes. For an **oblique grid** (one grid angle = 0, e.g. Angle X
+  0 / Angle Z 35).
+- **Isometric** (`iso_right` / `iso_left` / `iso_top`) — *both* in-plane
+  axes follow the grid's two diagonals, so the top face is a **rhombus**.
+  For a grid where **both angles are non-zero** (e.g. 30/30). Needs the
+  grid (reads both angles).
 
 ## Install
 
@@ -26,12 +34,25 @@ Files: `axo_projection.inx`, `axo_projection.py`. The tool appears under
 3. **Extensions → Architecture → Axonometric Projection**.
 4. Pick the projection and options, **Apply**.
 
+**Oblique modes** (for an oblique grid, one angle = 0):
+
 - **Side face** — strip drawn to the *right* of a vertical edge; its
   horizontal extent becomes the depth *y* (foreshortened, at the *y*
   angle), verticals stay. Left bbox edge stays put.
 - **Top face** — strip drawn *above* a horizontal edge; its upward
   extent becomes the depth *y*, horizontals stay. Bottom bbox edge stays.
 - **Undo** modes apply the inverse matrix.
+
+**Isometric modes** (for a grid with both angles non-zero; both read
+from the grid, so *Align to document axonometric grid* must be on):
+
+- **iso_right** — x–z face leaning with the right axis (Angle Z).
+- **iso_left** — y–z face leaning with the left axis (Angle X).
+- **iso_top** — x–y top face as a rhombus using both diagonals.
+
+Draw each face true-shape in the grid's **Spacing Y** unit; the
+foreshortening (`1/sin` per axis) makes the corners land on the grid.
+The bottom-left corner stays fixed (auto pivot).
 
 ## Parameters
 
