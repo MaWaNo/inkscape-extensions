@@ -149,24 +149,28 @@ class AxoProjection(inkex.EffectExtension):
                 "Isometric modes need BOTH grid angles strictly between 0 and "
                 "90 deg. This grid has an axis at 0 deg (an oblique grid) - "
                 "use the plain 'side' / 'top' modes for that.")
-        # foreshortening 1/sin is baked in: one drawing-unit along an axis
-        # rises one grid row, so corners land on the grid (Spacing-Y unit).
-        cotx = 1.0 / math.tan(math.radians(ax))     # left axis (gridanglex)
-        cotz = 1.0 / math.tan(math.radians(az))     # right axis (gridanglez)
+        # EQUAL foreshortening on every axis (true isometric: a cube reads
+        # as a cube). Each in-plane unit maps to a unit-length vector along
+        # its grid diagonal; the vertical axis stays unit length. (This is
+        # different from the oblique modes, which foreshorten the depth by
+        # 1/sin so a true-shape face stays true.)
+        cax, sax = math.cos(math.radians(ax)), math.sin(math.radians(ax))
+        caz, saz = math.cos(math.radians(az)), math.sin(math.radians(az))
         if mode == "iso_top":                       # x-y plane -> rhombus
-            lin = (cotz, -1.0, cotx, 1.0)
+            lin = (caz, -saz, cax, sax)
             face = "top (x-y rhombus)"
         elif mode == "iso_right":                   # x-z plane, right axis
-            lin = (cotz, -1.0, 0.0, 1.0)
+            lin = (caz, -saz, 0.0, 1.0)
             face = "right face (x-z)"
         elif mode == "iso_left":                    # y-z plane, left axis
-            lin = (-cotx, -1.0, 0.0, 1.0)
+            lin = (-cax, -sax, 0.0, 1.0)
             face = "left face (y-z)"
         else:
             raise inkex.AbortExtension("Unknown isometric mode.")
         report = ("Isometric %s\nGrid '%s': left axis (x) %.3f deg, right "
-                  "axis (z) %.3f deg.\nDraw the face in the grid's Spacing-Y "
-                  "unit; corners land on the grid." % (face, g["label"], ax, az))
+                  "axis (z) %.3f deg.\nEqual foreshortening on all axes; draw "
+                  "the face in the grid's Spacing-Y unit so corners land on "
+                  "the grid." % (face, g["label"], ax, az))
         return lin, report
 
     def effect(self):

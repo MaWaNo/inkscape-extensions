@@ -50,9 +50,11 @@ from the grid, so *Align to document axonometric grid* must be on):
 - **iso_left** — y–z face leaning with the left axis (Angle X).
 - **iso_top** — x–y top face as a rhombus using both diagonals.
 
-Draw each face true-shape in the grid's **Spacing Y** unit; the
-foreshortening (`1/sin` per axis) makes the corners land on the grid.
-The bottom-left corner stays fixed (auto pivot).
+Draw each face true-shape in the grid's **Spacing Y** unit. The modes use
+**equal foreshortening on all three axes** (true isometric — a cube reads
+as a cube, and a circle becomes the correct isometric ellipse), and the
+corners land on the grid. The bottom-left corner stays fixed (auto
+pivot).
 
 ## Parameters
 
