@@ -26,3 +26,9 @@ folder, then restart Inkscape:
 - **macOS:** `~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/extensions/`
 
 See each extension's own README for usage and parameters.
+
+## License
+
+GPL-2.0-or-later — see [LICENSE](LICENSE). Copyright © 2026
+Markus Wallner-Novak. (These extensions build on Inkscape's `inkex`
+library, which is GPL, so the project follows the same license.)
