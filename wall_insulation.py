@@ -29,6 +29,8 @@ import inkex
 from inkex import PathElement, Path
 from inkex.paths import Move, Line, Curve
 
+__version__ = "1.0.0"
+
 
 def _flatten(elem, tolerance=0.2):
     """Return a flat list of (x,y) points approximating the path,

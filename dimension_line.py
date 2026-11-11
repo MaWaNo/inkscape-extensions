@@ -57,6 +57,8 @@ DIM_NS = "http://www.bemessung.at/namespaces/dimension_line"
 inkex.NSS["dimline"] = DIM_NS
 etree.register_namespace("dimline", DIM_NS)
 
+__version__ = "1.0.0"
+
 
 def _ns(name):
     return inkex.addNS(name, "dimline")

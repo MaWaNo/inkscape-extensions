@@ -30,6 +30,8 @@ import math
 import inkex
 from inkex import Transform
 
+__version__ = "1.0.0"
+
 
 def _linear(mode, k, a):
     """2x2 linear part (a, b, c, d) in SVG convention (y down)."""
