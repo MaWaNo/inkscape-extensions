@@ -7,9 +7,23 @@ Custom Inkscape 1.3+ extensions for architectural drawing, under the
 |-----------|--------------|------|
 | **Wall Cavity Insulation** | Fills the space between two wall faces with a batt (looped) or rigid (zig-zag) insulation symbol; follows curved walls. | [README](wall_insulation_README.md) |
 | **Dimension Line** | Draws a dimension line between two points (path endpoints or bbox centers) with witness lines, end marks and a distance label; optional variable placeholder with sub/superscript. | [README](dimension_line_README.md) |
-| **Axonometric Projection** | Projects flat-drawn faces into oblique axonometry (side / top faces at a chosen angle and foreshortening). | — |
+| **Axonometric Projection** | Projects flat-drawn faces into oblique axonometry (side / top faces, optionally snapped to the document's axonometric grid). | [README](axo_projection_README.md) |
 
 German install sheet: [INSTALLATION_de.md](INSTALLATION_de.md).
+
+## Screenshots
+
+**Dimension Line** — end marks and horizontal labels with an upright index:
+
+![Dimension line](images/dimension_line.png)
+
+**Wall Cavity Insulation** — batt (looped) and rigid (zig-zag):
+
+![Wall insulation](images/wall_insulation.png)
+
+**Axonometric Projection** — flat face → side and top faces:
+
+![Axonometric projection](images/axo_projection.png)
 
 Each extension is a pair of files:
 

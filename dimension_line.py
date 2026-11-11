@@ -267,7 +267,9 @@ class DimensionLine(inkex.EffectExtension):
         # selected source line) and everything else (the targets to measure).
         groups, targets = [], []
         for el in sel:
-            g = self._as_dim_group(el) or self._group_for_source(el)
+            g = self._as_dim_group(el)
+            if g is None:
+                g = self._group_for_source(el)
             if g is not None:
                 if g not in groups:
                     groups.append(g)

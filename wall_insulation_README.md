@@ -1,5 +1,8 @@
 # Wall Cavity Insulation — Inkscape 1.3+ extension
 
+![Batt (looped) and rigid (zig-zag) insulation filled between two wall faces](images/wall_insulation.png)
+
+
 Fills the space between two selected paths (the two faces of a wall
 cavity) with an architectural insulation symbol. Two styles:
 

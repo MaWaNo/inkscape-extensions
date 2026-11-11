@@ -1,5 +1,8 @@
 # Dimension Line — Inkscape 1.3+ extension
 
+![End marks (arrow, open arrow, tick, dot, none) and horizontal labels with an upright index](images/dimension_line.png)
+
+
 Draws an architectural dimension line between two points. The easiest
 way is to **draw one line** between the points you want to measure and
 run — the dimension goes from that path's first node to its last node.
