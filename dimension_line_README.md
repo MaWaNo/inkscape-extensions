@@ -184,6 +184,20 @@ On an existing dimension the **Update tab** chooses:
   Inkscape can't pre-load the stored values into the dialog, so use this
   when you deliberately want to change the style.
 
+### Copy a style from another dimension
+
+Select the **new line (or two objects)** *together with* an **existing
+dimension**, then run. The new dimension copies that dimension's full
+stored style (end marks, sizes, offset, font, text position/orientation,
+colour, units, and the variable label) instead of the Options-tab
+settings. Handy for giving a whole drawing one consistent dimension
+style: set one up the way you like, then dimension everything else with
+it selected as the style donor.
+
+(Selecting *only* an existing dimension still **updates** it; the style
+copy kicks in when exactly one dimension plus other objects are
+selected.)
+
 ## Notes / limitations
 
 - Select **one** line/path or **exactly two** objects; anything else

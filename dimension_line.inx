@@ -98,6 +98,11 @@ search "Dimension Line", for one-key updates.
 values (the dialog can't pre-load the stored
 ones, so use this when you want to change style).
 
+Copy a style: select the new line (or two
+objects) TOGETHER WITH an existing dimension,
+then run — the new dimension copies that one's
+full style instead of the Options-tab settings.
+
 The source line is made invisible (stroke:none),
 not removed, so it stays selectable on the canvas
 (click / Tab / rubber-band) and its nodes stay

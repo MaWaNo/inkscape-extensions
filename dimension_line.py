@@ -258,31 +258,46 @@ class DimensionLine(inkex.EffectExtension):
                     return g
         return None
 
-    def _find_dim_group(self, sel):
-        for el in sel:
-            g = self._as_dim_group(el)
-            if g is not None:
-                return g
-        for el in sel:
-            g = self._group_for_source(el)
-            if g is not None:
-                return g
-        return None
-
     # ---- main ------------------------------------------------------------
 
     def effect(self):
         sel = list(self.svg.selection)
 
-        # Editing an existing dimension? -> update it from its source.
-        dimg = self._find_dim_group(sel)
-        if dimg is not None:
-            self._update(dimg)
+        # Split the selection into existing dimensions (via the group, or a
+        # selected source line) and everything else (the targets to measure).
+        groups, targets = [], []
+        for el in sel:
+            g = self._as_dim_group(el) or self._group_for_source(el)
+            if g is not None:
+                if g not in groups:
+                    groups.append(g)
+            else:
+                targets.append(el)
+
+        # Only existing dimension(s) selected -> update from their source.
+        if groups and not targets:
+            self._update(groups[0])
             return
 
-        # Otherwise create a new dimension from the selection.
-        if len(sel) == 1:
-            ends = _end_nodes(sel[0])
+        # One existing dimension + target(s) -> copy its style to a new
+        # dimension of the target(s) ("pick style from another dimension").
+        if len(groups) == 1 and targets:
+            self._create(targets, self._params_from_group(groups[0]))
+            return
+
+        if len(groups) > 1:
+            inkex.errormsg(
+                "Select at most one existing dimension (as the style to copy) "
+                "together with the line/objects to dimension.")
+            return
+
+        # No existing dimension selected -> ordinary create with dialog style.
+        self._create(targets, self._params_from_options())
+
+    def _create(self, targets, P):
+        """Create a new dimension for the target object(s) with style P."""
+        if len(targets) == 1:
+            ends = _end_nodes(targets[0])
             if ends is None:
                 inkex.errormsg(
                     "Select a single line/path (with at least two nodes) to "
@@ -291,24 +306,25 @@ class DimensionLine(inkex.EffectExtension):
                 return
             p1, p2 = ends
             mode = "single"
-            srcs = [sel[0]]
-        elif len(sel) == 2:
+            srcs = [targets[0]]
+        elif len(targets) == 2:
             if self.options.frm == "centers":
-                p1, p2 = _center(sel[0]), _center(sel[1])
+                p1, p2 = _center(targets[0]), _center(targets[1])
                 mode = "centers"
             else:
-                p1, p2 = _first_node(sel[0]), _first_node(sel[1])
+                p1, p2 = _first_node(targets[0]), _first_node(targets[1])
                 mode = "ends"
                 if p1 is None or p2 is None:
                     inkex.errormsg(
                         "Endpoint mode needs two paths. Use 'Bounding-box "
                         "centers' for non-path objects, or select two paths.")
                     return
-            srcs = [sel[0], sel[1]]
+            srcs = [targets[0], targets[1]]
         else:
             inkex.errormsg(
                 "Select one line (drawn start -> end) or exactly two objects "
-                "to dimension between.")
+                "to dimension between (optionally plus one existing dimension "
+                "whose style to copy).")
             return
 
         if p1 is None or p2 is None:
@@ -327,7 +343,6 @@ class DimensionLine(inkex.EffectExtension):
         grp.set(_ns("version"), "1")
         grp.set(_ns("mode"), mode)
         grp.set(_ns("source"), " ".join(src_ids))
-        P = self._params_from_options()
         self._store_params(grp, P)
         parent.add(grp)
 
