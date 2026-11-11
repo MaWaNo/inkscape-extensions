@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+    <name>Axonometric Projection</name>
+    <id>org.markus.architecture.axo_projection</id>
+
+    <param name="tab" type="notebook">
+        <page name="opts" gui-text="Options">
+            <param name="mode" type="optiongroup" appearance="combo"
+                   gui-text="Projection:">
+                <option value="side">Flat → side face y-z (horizontal becomes y)</option>
+                <option value="top">Flat → top face x-y (upwards becomes y)</option>
+                <option value="side_inv">Side face y-z → flat (undo)</option>
+                <option value="top_inv">Top face x-y → flat (undo)</option>
+            </param>
+            <param name="pivot" type="optiongroup" appearance="combo"
+                   gui-text="Fixed joint line (selection bbox):">
+                <option value="auto">Auto (side: left edge, top: bottom edge)</option>
+                <option value="left">Left edge</option>
+                <option value="right">Right edge</option>
+                <option value="bottom">Bottom edge</option>
+                <option value="top">Top edge</option>
+            </param>
+            <separator/>
+            <label appearance="header">Tripod (x horizontal, z vertical, same scale)</label>
+            <param name="lx" type="float" min="0.001" max="10000.0" precision="3"
+                   gui-text="x length (per reference length):">80.0</param>
+            <param name="ly" type="float" min="0.001" max="10000.0" precision="3"
+                   gui-text="y length (same reference length):">35.66</param>
+            <param name="angle" type="float" min="0.0" max="89.9" precision="3"
+                   gui-text="y angle to horizontal (°):">35.0</param>
+        </page>
+        <page name="help" gui-text="Help">
+            <label xml:space="preserve">Draw a face flat (true shape, x/z scale) next to
+the edge it belongs to, select it (paths or groups),
+then run this extension.
+
+Side face: strip drawn to the RIGHT of a vertical
+edge. Its horizontal extent becomes the depth y
+(foreshortened by y/x, at the y angle); verticals
+stay. The left bbox edge stays in place.
+
+Top face: strip drawn ABOVE a horizontal edge. Its
+upward extent becomes the depth y; horizontals stay.
+The bottom bbox edge stays in place.
+
+The matrix is prepended to each selected object's
+transform (stroke widths are not compensated).
+Ungrouping later pushes it down to the children.
+"Undo" modes apply the inverse matrix.
+
+Default tripod: x 80 / 0°, y 35.66 / 35°, z = x scale.</label>
+        </page>
+    </param>
+
+    <effect>
+        <object-type>all</object-type>
+        <effects-menu>
+            <submenu name="Architecture"/>
+        </effects-menu>
+    </effect>
+
+    <script>
+        <command location="inx" interpreter="python">axo_projection.py</command>
+    </script>
+</inkscape-extension>
