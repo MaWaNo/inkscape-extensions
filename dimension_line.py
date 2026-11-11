@@ -143,8 +143,8 @@ class DimensionLine(inkex.EffectExtension):
         pars.add_argument("--var_italic", type=inkex.Boolean, default=True)
         pars.add_argument("--hide_source", type=inkex.Boolean, default=True)
         pars.add_argument("--on_existing", default="refresh")
-        pars.add_argument("--preset", default="off")
-        pars.add_argument("--save_slot", default="none")
+        pars.add_argument("--use_saved", type=inkex.Boolean, default=True)
+        pars.add_argument("--save", type=inkex.Boolean, default=False)
 
     # ---- units / colour helpers -----------------------------------------
 
@@ -235,39 +235,33 @@ class DimensionLine(inkex.EffectExtension):
             "var_italic": a("var_italic", "true") == "true",
         }
 
-    # ---- style preset slots (JSON file beside the extension) ------------
+    # ---- the saved default style (one JSON file beside the extension) ---
 
-    def _preset_path(self):
+    def _style_path(self):
         return os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            "dimension_line_presets.json")
+                            "dimension_line_style.json")
 
-    def _load_all_presets(self):
+    def _load_style(self):
+        """The saved default style, merged over the current options so any
+        key a style saved by an older version lacks falls back sensibly."""
         try:
-            with open(self._preset_path(), "r", encoding="utf-8") as fh:
-                data = json.load(fh)
-            return data if isinstance(data, dict) else {}
+            with open(self._style_path(), "r", encoding="utf-8") as fh:
+                p = json.load(fh)
         except (OSError, ValueError):
-            return {}
-
-    def _load_preset(self, slot):
-        """Stored style for a slot, merged over current options for any
-        keys a slot saved by an older version might be missing."""
-        p = self._load_all_presets().get(str(slot))
+            return None
         if not isinstance(p, dict):
             return None
         merged = self._params_from_options()
         merged.update(p)
         return merged
 
-    def _save_preset(self, slot, P):
-        data = self._load_all_presets()
-        data[str(slot)] = P
+    def _save_style(self, P):
         try:
-            with open(self._preset_path(), "w", encoding="utf-8") as fh:
-                json.dump(data, fh, indent=1)
+            with open(self._style_path(), "w", encoding="utf-8") as fh:
+                json.dump(P, fh, indent=1)
         except OSError as exc:
             raise inkex.AbortExtension(
-                "Could not write the preset file: %s" % exc)
+                "Could not write the saved-style file: %s" % exc)
 
     # ---- finding our own groups -----------------------------------------
 
@@ -314,19 +308,17 @@ class DimensionLine(inkex.EffectExtension):
             else:
                 targets.append(el)
 
-        # Saving a style to a slot (the "Save Style" menu command) captures
-        # the SELECTED dimension's style. It never draws a dimension, so it
-        # is fully separate from a normal Apply.
-        if self.options.save_slot != "none":
+        # "Dimension Line: Save Style" command: store the SELECTED
+        # dimension's style as the single saved default. Draws nothing.
+        if self.options.save:
             if len(groups) != 1:
                 inkex.errormsg(
                     "Select exactly one existing dimension whose style you "
                     "want to save, then run 'Dimension Line: Save Style'.")
                 return
-            self._save_preset(self.options.save_slot,
-                              self._params_from_group(groups[0]))
-            self.msg("Saved the selected dimension's style to preset slot %s."
-                     % self.options.save_slot)
+            self._save_style(self._params_from_group(groups[0]))
+            self.msg("Saved the selected dimension's style as the default. "
+                     "New dimensions use it while 'Use saved style' is on.")
             return
 
         # Only existing dimension(s) selected -> update from their source.
@@ -341,15 +333,11 @@ class DimensionLine(inkex.EffectExtension):
             return
 
         # Style for a new dimension, by precedence:
-        #   a selected dimension (donor) > a chosen preset slot > the dialog.
+        #   a selected dimension (donor) > the saved style > the Options tab.
         if len(groups) == 1:
             style = self._params_from_group(groups[0])
-        elif self.options.preset != "off":
-            style = self._load_preset(self.options.preset)
-            if style is None:
-                self.msg("Preset slot %s is empty; using the Options-tab "
-                         "style." % self.options.preset)
-                style = self._params_from_options()
+        elif self.options.use_saved:
+            style = self._load_style() or self._params_from_options()
         else:
             style = self._params_from_options()
 

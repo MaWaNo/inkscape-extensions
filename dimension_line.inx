@@ -108,31 +108,25 @@ not removed, so it stays selectable on the canvas
 (click / Tab / rubber-band) and its nodes stay
 editable. Move or edit it, then re-run to update.</label>
         </page>
-        <page name="preset" gui-text="Style preset">
-            <param name="preset" type="optiongroup" appearance="combo"
-                   gui-text="Use style from slot:">
-                <option value="off">(off)</option>
-                <option value="1">Slot 1</option>
-                <option value="2">Slot 2</option>
-                <option value="3">Slot 3</option>
-                <option value="4">Slot 4</option>
-                <option value="5">Slot 5</option>
-            </param>
-            <label xml:space="preserve">Reusable style slots, stored in
-dimension_line_presets.json next to the extension.
+        <page name="style" gui-text="Saved style">
+            <param name="use_saved" type="bool"
+                   gui-text="Use the saved style for new dimensions">true</param>
+            <label xml:space="preserve">One saved style, stored in
+dimension_line_style.json next to the extension.
 
-Use: set "Use style from slot" and run on your new
-line — the new dimension uses that slot's style.
+Save it: select a dimension you like, then run
+Extensions &gt; Architecture &gt; Dimension Line:
+Save Style.
 
-Save: select the dimension whose look you like and run
-Extensions &gt; Architecture &gt; Dimension Line: Save
-Style, then pick the slot. (Saving is a separate menu
-command so a normal Apply never saves.)
+While "Use the saved style" is on, every new
+dimension uses that saved style (selecting an
+existing dimension together with your new line
+still overrides it). Turn it off to use the
+Options-tab settings instead.
 
-Precedence when creating: a selected dimension (style
-donor) wins over a used slot, which wins over the
-Options tab. Inkscape dialogs are fixed, so the slots
-are numbered, not a live list of your dimensions.</label>
+Note: Inkscape cannot write the saved values back
+into the fields on the Options tab, so the saved
+style is APPLIED, not shown there.</label>
         </page>
         <page name="var" gui-text="Variable">
             <param name="usevar" type="bool"

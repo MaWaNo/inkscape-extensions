@@ -3,20 +3,13 @@
     <name>Dimension Line: Save Style</name>
     <id>org.markus.architecture.dimension_line_savestyle</id>
 
-    <param name="save_slot" type="optiongroup" appearance="radio"
-           gui-text="Save the selected dimension's style to:">
-        <option value="1">Slot 1</option>
-        <option value="2">Slot 2</option>
-        <option value="3">Slot 3</option>
-        <option value="4">Slot 4</option>
-        <option value="5">Slot 5</option>
-    </param>
-    <label xml:space="preserve">Select one existing dimension, then run this to store
-its full style in the chosen slot. Apply it later from
-the Dimension Line dialog, "Use style from slot".
+    <param name="save" type="bool" gui-hidden="true">true</param>
+    <label xml:space="preserve">Select one existing dimension and run this to store its
+style as the saved default. New dimensions then use it
+(Dimension Line dialog, "Use the saved style").
 
-Slots live in dimension_line_presets.json next to the
-extension.</label>
+The style is kept in dimension_line_style.json next to
+the extension.</label>
 
     <effect>
         <object-type>all</object-type>
