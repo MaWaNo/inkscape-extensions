@@ -3,6 +3,11 @@
 All notable changes to these Inkscape extensions are documented here.
 Versions apply to the set as a whole.
 
+## [1.0.1] — 2026-11-11
+
+- Set the author line to "Markus Wallner-Novak, AI-assisted by Claude
+  Code" (was a placeholder). No functional change.
+
 ## [1.0.0] — 2026-11-11
 
 First tagged release.
@@ -33,4 +38,5 @@ First tagged release.
 - Batt (looped) and rigid (zig-zag) insulation between two wall faces;
   follows curved walls.
 
+[1.0.1]: https://github.com/MaWaNo/inkscape-extensions/releases/tag/v1.0.1
 [1.0.0]: https://github.com/MaWaNo/inkscape-extensions/releases/tag/v1.0.0

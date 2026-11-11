@@ -29,7 +29,7 @@ import inkex
 from inkex import PathElement, Path
 from inkex.paths import Move, Line, Curve
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 def _flatten(elem, tolerance=0.2):

@@ -1,6 +1,6 @@
 # Inkscape Extensions
 
-**Version 1.0.0** · Custom Inkscape 1.3+ extensions for architectural
+**Version 1.0.1** · Custom Inkscape 1.3+ extensions for architectural
 drawing, under the **Extensions → Architecture** submenu. See
 [CHANGELOG.md](CHANGELOG.md).
 

@@ -30,7 +30,7 @@ import math
 import inkex
 from inkex import Transform
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 def _linear(mode, k, a):
